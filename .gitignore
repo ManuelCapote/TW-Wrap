@@ -1,0 +1,20 @@
+# Dependencies
+**/node_modules/
+
+# Environment files
+.env
+.env.*
+*.env
+*.env.local
+!.env.example
+
+# Build outputs
+**/dist/
+**/coverage/
+.vite/
+
+# Editor and system files
+.DS_Store
+.idea/
+.vscode/
+.claude
