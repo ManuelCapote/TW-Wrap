@@ -112,6 +112,17 @@ const mockWishlistItems: Record<string, WishListItem[]> = {
       priority: 'low',
       createdAt: new Date(),
       updatedAt: new Date()
+    },
+    {
+      id: '5',
+      userId: 'sister',
+      title: 'Watercolor Workshop',
+      description: 'Local weekend class',
+      quantity: 1,
+      isPurchased: false,
+      priority: 'medium',
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
   ]
 }
@@ -187,7 +198,16 @@ const getPriorityColor = (priority: string) => {
             </div>
             
             <div class="item-actions">
-              <a :href="item.url" target="_blank" class="view-btn">View Product</a>
+              <a 
+                v-if="item.url" 
+                :href="item.url" 
+                target="_blank" 
+                rel="noopener" 
+                class="view-btn"
+              >
+                View Product
+              </a>
+              <span v-else class="no-link-badge">No link provided</span>
               <button 
                 v-if="!item.isPurchased"
                 @click="markAsPurchased(selectedMember, item.id)" 
@@ -232,7 +252,7 @@ const getPriorityColor = (priority: string) => {
 }
 
 .member-card {
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
@@ -251,7 +271,7 @@ const getPriorityColor = (priority: string) => {
 
 .member-card.active {
   border-color: var(--color-primary);
-  background: #e0f2f1;
+  background: var(--color-primary-soft);
   box-shadow: var(--shadow-md);
 }
 
@@ -300,7 +320,7 @@ const getPriorityColor = (priority: string) => {
 }
 
 .item-card {
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
@@ -384,6 +404,18 @@ const getPriorityColor = (priority: string) => {
   gap: var(--spacing-sm);
   align-items: center;
   flex-wrap: wrap;
+}
+
+.no-link-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border);
 }
 
 .view-btn {

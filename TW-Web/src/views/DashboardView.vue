@@ -71,7 +71,7 @@
 }
 
 .wishlist-card {
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);

@@ -37,6 +37,17 @@ const mockWishlistItems = ref<WishListItem[]>([
     priority: 'medium',
     createdAt: new Date(),
     updatedAt: new Date()
+  },
+  {
+    id: '3',
+    userId: 'user1',
+    title: 'Handmade Ceramic Mug',
+    description: 'Supporting a local artist',
+    quantity: 1,
+    isPurchased: false,
+    priority: 'low',
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ])
 
@@ -128,7 +139,16 @@ const getPriorityColor = (priority: string) => {
           </div>
           
           <div class="item-actions">
-            <a :href="item.url" target="_blank" class="view-btn">View Product</a>
+            <a 
+              v-if="item.url" 
+              :href="item.url" 
+              target="_blank" 
+              rel="noopener" 
+              class="view-btn"
+            >
+              View Product
+            </a>
+            <span v-else class="no-link-badge">No link provided</span>
             <button @click="editItem(item.id)" class="edit-btn">Edit</button>
             <button @click="removeItem(item.id)" class="remove-btn">Remove</button>
           </div>
@@ -178,7 +198,7 @@ const getPriorityColor = (priority: string) => {
 }
 
 .item-card {
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
@@ -192,7 +212,7 @@ const getPriorityColor = (priority: string) => {
 
 .item-card.editing {
   border-color: var(--color-primary);
-  background: #e0f2f1;
+  background: var(--color-primary-soft);
   opacity: 0.6;
 }
 
@@ -248,6 +268,18 @@ const getPriorityColor = (priority: string) => {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
+}
+
+.no-link-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border);
 }
 
 .view-btn {

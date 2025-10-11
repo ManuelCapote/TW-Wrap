@@ -5,6 +5,8 @@
   --color-primary-hover: #00695c;
   --color-background: #ffffff;
   --color-surface: #f5f5f5;
+  --color-surface-raised: #ffffff;
+  --color-surface-muted: #f0f4f8;
   --color-border: #e0e0e0;
   --color-border-hover: #bdbdbd;
   --color-text: #212121;
@@ -13,6 +15,9 @@
   --color-error-bg: #ffebee;
   --color-success: #388e3c;
   --color-warning: #f57c00;
+  --color-primary-soft: rgba(0, 137, 123, 0.15);
+
+  color-scheme: light;
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -32,6 +37,53 @@
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #121212;
+    --color-surface: #1e1e1e;
+    --color-surface-raised: #1b232a;
+    --color-surface-muted: #151b22;
+    --color-border: #2a2a2a;
+    --color-border-hover: #3d3d3d;
+    --color-text: #f5f5f5;
+    --color-text-secondary: #b0b0b0;
+    --color-error-bg: rgba(211, 47, 47, 0.12);
+    --color-primary-soft: rgba(0, 137, 123, 0.2);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='light'] {
+  --color-background: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-surface-raised: #ffffff;
+  --color-surface-muted: #f0f4f8;
+  --color-border: #e0e0e0;
+  --color-border-hover: #bdbdbd;
+  --color-text: #212121;
+  --color-text-secondary: #757575;
+  --color-error-bg: #ffebee;
+  --color-primary-soft: rgba(0, 137, 123, 0.15);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --color-background: #101418;
+  --color-surface: #171c21;
+  --color-surface-raised: #1b232a;
+  --color-surface-muted: #14191f;
+  --color-border: #242b31;
+  --color-border-hover: #323b43;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #a0aec0;
+  --color-error-bg: rgba(211, 47, 47, 0.12);
+  --color-primary-soft: rgba(0, 137, 123, 0.22);
+
+  color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {
@@ -49,6 +101,7 @@ body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* Utility Classes */

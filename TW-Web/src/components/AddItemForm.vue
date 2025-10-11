@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { WishListItem, ProductPreview } from '@/types'
 import { parseProductUrl, isValidProductUrl } from '@/utils/urlParser'
 
@@ -14,6 +14,7 @@ const urlInput = ref('')
 const isLoading = ref(false)
 const error = ref('')
 const productPreview = ref<ProductPreview | null>(null)
+const lastParsedUrl = ref<string | null>(null)
 
 const formData = ref({
   title: '',
@@ -25,13 +26,18 @@ const formData = ref({
   priority: 'medium' as 'low' | 'medium' | 'high'
 })
 
+const trimmedUrl = computed(() => urlInput.value.trim())
+
 const canParseUrl = computed(() => {
-  return urlInput.value.trim() && isValidProductUrl(urlInput.value.trim())
+  return trimmedUrl.value && isValidProductUrl(trimmedUrl.value)
+})
+
+const hasInvalidUrl = computed(() => {
+  return Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value)
 })
 
 const canSave = computed(() => {
   return formData.value.title.trim() && 
-         urlInput.value.trim() && 
          formData.value.quantity > 0
 })
 
@@ -43,8 +49,9 @@ const parseUrl = async () => {
   productPreview.value = null
   
   try {
-    const preview = await parseProductUrl(urlInput.value.trim())
+    const preview = await parseProductUrl(trimmedUrl.value)
     productPreview.value = preview
+    lastParsedUrl.value = trimmedUrl.value
     
     // Auto-fill form with parsed data (only name and store)
     formData.value.title = preview.title
@@ -61,14 +68,19 @@ const parseUrl = async () => {
 const handleSave = () => {
   if (!canSave.value) return
   
+  const url = trimmedUrl.value
+  const validUrl = url && isValidProductUrl(url) ? url : undefined
+  const description = formData.value.description.trim()
+  const store = formData.value.store.trim()
+
   const newItem = {
     title: formData.value.title.trim(),
-    description: formData.value.description.trim() || undefined,
-    url: urlInput.value.trim(),
+    description: description || undefined,
+    url: validUrl,
     imageUrl: productPreview.value?.imageUrl,
     price: formData.value.price || undefined,
     currency: formData.value.currency || undefined,
-    store: formData.value.store.trim() || undefined,
+    store: store || undefined,
     quantity: formData.value.quantity,
     priority: formData.value.priority,
     isPurchased: false
@@ -87,6 +99,7 @@ const resetForm = () => {
   urlInput.value = ''
   productPreview.value = null
   error.value = ''
+  lastParsedUrl.value = null
   formData.value = {
     title: '',
     description: '',
@@ -97,6 +110,16 @@ const resetForm = () => {
     priority: 'medium'
   }
 }
+
+watch(trimmedUrl, (currentUrl) => {
+  if (!currentUrl) {
+    error.value = ''
+  }
+
+  if (currentUrl !== lastParsedUrl.value) {
+    productPreview.value = null
+  }
+})
 </script>
 
 <template>
@@ -106,7 +129,10 @@ const resetForm = () => {
     <!-- URL Input Section -->
     <div class="url-section">
       <div class="form-group">
-        <label for="url">Product URL *</label>
+        <label for="url">Product Link (optional)</label>
+        <p class="field-hint">
+          Paste a link to auto-fill the details, or leave this blank to save the item manually.
+        </p>
         <div class="url-input-group">
           <input
             id="url"
@@ -125,6 +151,9 @@ const resetForm = () => {
             {{ isLoading ? 'Parsing...' : 'Parse' }}
           </button>
         </div>
+        <p v-if="hasInvalidUrl" class="invalid-url-hint">
+          This link doesn't look valid. We'll save the item without it, or paste the full URL (including https://) to enable parsing.
+        </p>
       </div>
       
       <div v-if="error" class="error-message">
@@ -251,7 +280,7 @@ const resetForm = () => {
 
 <style scoped>
 .add-form {
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
@@ -272,6 +301,12 @@ const resetForm = () => {
 
 .form-group {
   margin-bottom: var(--spacing-md);
+}
+
+.field-hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
 .url-input-group {
@@ -315,6 +350,12 @@ const resetForm = () => {
   background: var(--color-border);
   color: var(--color-text-secondary);
   cursor: not-allowed;
+}
+
+.invalid-url-hint {
+  margin-top: var(--spacing-sm);
+  font-size: 13px;
+  color: #e74c3c;
 }
 
 .loading-state {

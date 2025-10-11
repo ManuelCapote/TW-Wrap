@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { WishListItem } from '@/types'
+import { isValidProductUrl } from '@/utils/urlParser'
 
 interface Props {
   item: WishListItem
@@ -16,14 +17,21 @@ const emit = defineEmits<Emits>()
 
 const formData = ref({
   title: props.item.title,
+  url: props.item.url || '',
   quantity: props.item.quantity,
   priority: props.item.priority
 })
 
 const errors = ref<Record<string, string>>({})
 
+const trimmedUrl = computed(() => formData.value.url.trim())
+
+const hasInvalidUrl = computed(() => {
+  return Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value)
+})
+
 const isValid = computed(() => {
-  return formData.value.title.trim() && formData.value.quantity > 0
+  return formData.value.title.trim() && formData.value.quantity > 0 && !hasInvalidUrl.value
 })
 
 const validateForm = () => {
@@ -31,6 +39,10 @@ const validateForm = () => {
   
   if (!formData.value.title.trim()) {
     errors.value.title = 'Name is required'
+  }
+
+  if (hasInvalidUrl.value) {
+    errors.value.url = 'Please enter a valid URL or leave this blank'
   }
   
   if (formData.value.quantity <= 0) {
@@ -46,6 +58,7 @@ const handleSave = () => {
   const updatedItem: WishListItem = {
     ...props.item,
     title: formData.value.title.trim(),
+    url: trimmedUrl.value || undefined,
     quantity: formData.value.quantity,
     priority: formData.value.priority,
     updatedAt: new Date()
@@ -75,6 +88,22 @@ const handleCancel = () => {
           :class="{ error: errors.title }"
         />
         <span v-if="errors.title" class="error-message">{{ errors.title }}</span>
+      </div>
+
+      <div class="form-group">
+        <label for="url">Product Link</label>
+        <p class="field-hint">
+          Paste a store link to help your family get straight to the product. Leave blank to remove it.
+        </p>
+        <input
+          id="url"
+          v-model="formData.url"
+          type="url"
+          placeholder="https://example.com/your-item"
+          class="form-input"
+          :class="{ error: errors.url }"
+        />
+        <span v-if="errors.url" class="error-message">{{ errors.url }}</span>
       </div>
 
       <div class="form-row">
@@ -130,6 +159,12 @@ const handleCancel = () => {
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+.field-hint {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
 }
 
 .form-row {

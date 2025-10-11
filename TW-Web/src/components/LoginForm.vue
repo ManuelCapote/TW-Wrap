@@ -137,7 +137,7 @@ const fillDemo = () => {
   max-width: 440px;
   margin: 0 auto;
   padding: var(--spacing-xl);
-  background: white;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);

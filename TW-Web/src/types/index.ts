@@ -40,7 +40,8 @@ export interface WishListItem {
   userId: string
   title: string
   description?: string
-  url: string
+  url?: string
+  imageUrl?: string
   price?: number
   currency?: string
   store?: string
@@ -66,4 +67,5 @@ export interface ProductPreview {
   price?: number
   currency?: string
   store?: string
+  imageUrl?: string
 }
