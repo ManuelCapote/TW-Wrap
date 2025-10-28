@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UserRole } from '@/types'
 import { Crown, User } from 'lucide-vue-next'
-import { Component } from 'vue'
+import type { Component } from 'vue'
 
 interface Props {
   role: UserRole
@@ -79,30 +79,5 @@ const iconSize = props.size === 'small' ? 12 : 14
 
 .badge-label {
   font-size: inherit;
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .badge-admin {
-    background: var(--color-warning);
-    color: #78350f;
-  }
-
-  .badge-member {
-    background: var(--color-surface-muted);
-    color: var(--color-text-secondary);
-    border-color: var(--color-border);
-  }
-}
-
-:root[data-theme='dark'] .badge-admin {
-  background: var(--color-warning);
-  color: #78350f;
-}
-
-:root[data-theme='dark'] .badge-member {
-  background: var(--color-surface-muted);
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
 }
 </style>

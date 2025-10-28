@@ -12,6 +12,7 @@ const familyMembers = ref<User[]>([
     email: 'mom@family.com',
     avatar: '👩‍🦳',
     familyId: 'family1',
+    role: 'ADMIN',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -21,6 +22,7 @@ const familyMembers = ref<User[]>([
     email: 'dad@family.com',
     avatar: '👨‍🦲',
     familyId: 'family1',
+    role: 'MEMBER',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -30,6 +32,7 @@ const familyMembers = ref<User[]>([
     email: 'sarah@family.com',
     avatar: '👩‍🦱',
     familyId: 'family1',
+    role: 'MEMBER',
     createdAt: new Date(),
     updatedAt: new Date()
   }
