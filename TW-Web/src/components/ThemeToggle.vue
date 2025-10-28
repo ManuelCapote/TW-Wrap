@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { useTheme } from '@/composables/useTheme'
+import { Sun, Moon, Monitor } from 'lucide-vue-next'
+import { computed } from 'vue'
 
 const { theme, isDark, toggleTheme } = useTheme()
 
-const getThemeIcon = () => {
+const getThemeIcon = computed(() => {
   switch (theme.value) {
     case 'light':
-      return '☀️'
+      return Sun
     case 'dark':
-      return '🌙'
+      return Moon
     case 'auto':
-      return '🔄'
+      return Monitor
     default:
-      return '🔄'
+      return Monitor
   }
-}
+})
 
 const getThemeLabel = () => {
   switch (theme.value) {
@@ -37,7 +39,7 @@ const getThemeLabel = () => {
     :title="`Current theme: ${getThemeLabel()}. Click to cycle through themes.`"
     :aria-label="`Switch theme. Current: ${getThemeLabel()}`"
   >
-    <span class="theme-icon">{{ getThemeIcon() }}</span>
+    <component :is="getThemeIcon" :size="18" :stroke-width="2" class="theme-icon" />
     <span class="theme-label">{{ getThemeLabel() }}</span>
   </button>
 </template>
@@ -64,8 +66,9 @@ const getThemeLabel = () => {
 }
 
 .theme-icon {
-  font-size: 16px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-secondary);
 }
 
 .theme-label {
@@ -78,10 +81,6 @@ const getThemeLabel = () => {
   .theme-toggle {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 13px;
-  }
-
-  .theme-icon {
-    font-size: 14px;
   }
 }
 

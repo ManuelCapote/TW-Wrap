@@ -1,21 +1,22 @@
-/* Minimal MVP Design Tokens */
+/* Minimal Notion/Linear Style Design Tokens */
 :root {
-  /* Colors */
-  --color-primary: #00897b;
-  --color-primary-hover: #00695c;
-  --color-background: #ffffff;
-  --color-surface: #f5f5f5;
+  /* Colors - Minimal Palette */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-muted: #f0f4f8;
-  --color-border: #e0e0e0;
-  --color-border-hover: #bdbdbd;
-  --color-text: #212121;
-  --color-text-secondary: #757575;
-  --color-error: #d32f2f;
-  --color-error-bg: #ffebee;
-  --color-success: #388e3c;
-  --color-warning: #f57c00;
-  --color-primary-soft: rgba(0, 137, 123, 0.15);
+  --color-surface-muted: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-border-hover: #d4d4d4;
+  --color-text: #171717;
+  --color-text-secondary: #737373;
+  --color-text-tertiary: #a3a3a3;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-primary-soft: rgba(59, 130, 246, 0.1);
 
   color-scheme: light;
 
@@ -26,60 +27,63 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
-  /* Border Radius */
-  --radius-sm: 4px;
+  /* Border Radius - Slightly larger for Notion feel */
+  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+  /* Shadows - Subtle, minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #121212;
-    --color-surface: #1e1e1e;
-    --color-surface-raised: #1b232a;
-    --color-surface-muted: #151b22;
+    --color-background: #0f0f0f;
+    --color-surface: #1a1a1a;
+    --color-surface-raised: #1a1a1a;
+    --color-surface-muted: #262626;
     --color-border: #2a2a2a;
-    --color-border-hover: #3d3d3d;
-    --color-text: #f5f5f5;
-    --color-text-secondary: #b0b0b0;
-    --color-error-bg: rgba(211, 47, 47, 0.12);
-    --color-primary-soft: rgba(0, 137, 123, 0.2);
+    --color-border-hover: #404040;
+    --color-text: #fafafa;
+    --color-text-secondary: #a3a3a3;
+    --color-text-tertiary: #737373;
+    --color-error-bg: rgba(239, 68, 68, 0.1);
+    --color-primary-soft: rgba(59, 130, 246, 0.15);
 
     color-scheme: dark;
   }
 }
 
 :root[data-theme='light'] {
-  --color-background: #ffffff;
-  --color-surface: #f5f5f5;
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-muted: #f0f4f8;
-  --color-border: #e0e0e0;
-  --color-border-hover: #bdbdbd;
-  --color-text: #212121;
-  --color-text-secondary: #757575;
-  --color-error-bg: #ffebee;
-  --color-primary-soft: rgba(0, 137, 123, 0.15);
+  --color-surface-muted: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-border-hover: #d4d4d4;
+  --color-text: #171717;
+  --color-text-secondary: #737373;
+  --color-text-tertiary: #a3a3a3;
+  --color-error-bg: #fef2f2;
+  --color-primary-soft: rgba(59, 130, 246, 0.1);
 
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --color-background: #101418;
-  --color-surface: #171c21;
-  --color-surface-raised: #1b232a;
-  --color-surface-muted: #14191f;
-  --color-border: #242b31;
-  --color-border-hover: #323b43;
-  --color-text: #f1f5f9;
-  --color-text-secondary: #a0aec0;
-  --color-error-bg: rgba(211, 47, 47, 0.12);
-  --color-primary-soft: rgba(0, 137, 123, 0.22);
+  --color-background: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-surface-raised: #1a1a1a;
+  --color-surface-muted: #262626;
+  --color-border: #2a2a2a;
+  --color-border-hover: #404040;
+  --color-text: #fafafa;
+  --color-text-secondary: #a3a3a3;
+  --color-text-tertiary: #737373;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-primary-soft: rgba(59, 130, 246, 0.15);
 
   color-scheme: dark;
 }

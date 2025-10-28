@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { Gift } from 'lucide-vue-next'
 import LoginForm from '@/components/LoginForm.vue'
 import RegisterForm from '@/components/RegisterForm.vue'
 
@@ -37,7 +38,10 @@ onMounted(() => {
   <div class="auth-view">
     <div class="auth-container">
       <div class="auth-header">
-        <h1 class="logo">🎁 TW-Web</h1>
+        <h1 class="logo">
+          <Gift :size="32" :stroke-width="2" class="logo-icon" />
+          TW-Web
+        </h1>
         <p class="tagline">Share wishlists, give perfect gifts</p>
       </div>
       
@@ -80,10 +84,18 @@ onMounted(() => {
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   font-size: 2.5rem;
   font-weight: bold;
   margin: 0 0 0.5rem 0;
-  color: var(--color-heading);
+  color: var(--color-text);
+}
+
+.logo-icon {
+  color: var(--color-primary);
 }
 
 .tagline {
