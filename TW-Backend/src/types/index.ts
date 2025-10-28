@@ -1,8 +1,11 @@
+export type UserRole = 'ADMIN' | 'MEMBER'
+
 export interface User {
   id: string
   name: string
   email: string
   avatar?: string
+  role: UserRole
   familyId: string
   createdAt: Date
   updatedAt: Date
@@ -13,6 +16,7 @@ export interface AuthUser {
   email: string
   name: string
   avatar?: string
+  role: UserRole
   isEmailVerified: boolean
   createdAt: Date
 }
@@ -56,7 +60,20 @@ export interface WishListItem {
 export interface Family {
   id: string
   name: string
+  ownerId: string
   members: User[]
+  createdAt: Date
+}
+
+export interface FamilyInvite {
+  id: string
+  code: string
+  familyId: string
+  createdById: string
+  expiresAt: Date
+  maxUses: number
+  currentUses: number
+  isActive: boolean
   createdAt: Date
 }
 

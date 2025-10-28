@@ -25,7 +25,7 @@ export class AuthService {
     const { name, email, password } = userData
 
     // Check if user already exists
-    const existingUser = database.getUserByEmail(email)
+    const existingUser = await database.getUserByEmail(email)
     if (existingUser) {
       throw createError('Email already registered', 400)
     }
@@ -47,13 +47,13 @@ export class AuthService {
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '12')
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
-    // Create user (assign to default family for now)
-    const user = database.createUser({
+    // Create user with their own family (user becomes ADMIN of their family)
+    const user = await database.createUserWithFamily({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       avatar: '👤',
-      familyId: 'family-1' // Default family for demo
-    }, hashedPassword)
+      role: 'ADMIN' // First user in a family is always admin
+    }, hashedPassword, `${name}'s Family`)
 
     // Generate token
     const token = this.generateToken(user.id, user.email, user.familyId)
@@ -65,6 +65,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatar: user.avatar,
+      role: user.role,
       isEmailVerified: false, // In real app, would send verification email
       createdAt: user.createdAt
     }
@@ -80,13 +81,13 @@ export class AuthService {
     const { email, password } = credentials
 
     // Find user
-    const user = database.getUserByEmail(email.toLowerCase().trim())
+    const user = await database.getUserByEmail(email.toLowerCase().trim())
     if (!user) {
       throw createError('Invalid email or password', 401)
     }
 
     // Check password
-    const storedPassword = database.getUserPassword(user.id)
+    const storedPassword = await database.getUserPassword(user.id)
     if (!storedPassword) {
       throw createError('Invalid email or password', 401)
     }
@@ -106,6 +107,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatar: user.avatar,
+      role: user.role,
       isEmailVerified: true, // Assume verified for demo
       createdAt: user.createdAt
     }
@@ -120,9 +122,9 @@ export class AuthService {
   async refreshToken(oldToken: string): Promise<{ token: string; expiresAt: Date }> {
     try {
       const decoded = jwt.verify(oldToken, this.jwtSecret) as JWTPayload
-      
+
       // Verify user still exists
-      const user = database.getUserById(decoded.userId)
+      const user = await database.getUserById(decoded.userId)
       if (!user) {
         throw createError('User not found', 401)
       }
@@ -139,9 +141,9 @@ export class AuthService {
   async verifyToken(token: string): Promise<JWTPayload> {
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as JWTPayload
-      
+
       // Verify user still exists
-      const user = database.getUserById(decoded.userId)
+      const user = await database.getUserById(decoded.userId)
       if (!user) {
         throw createError('User not found', 401)
       }

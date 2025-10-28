@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// WHAT IS THIS FILE?
+// The Prisma schema defines your database structure in a declarative way.
+// Prisma reads this and generates:
+// 1. SQL migrations to create/update your database tables
+// 2. TypeScript types for type-safe database queries
+
+generator client {
+  provider = "prisma-client-js"
+  // This generates the Prisma Client that you'll use to query the database
+}
+
+datasource db {
+  provider = "postgresql"
+  // This reads from your .env file: DATABASE_URL=postgresql://...
+  url      = env("DATABASE_URL")
+}
+
+// FAMILY MODEL
+// Represents a group of users (e.g., a household)
+model Family {
+  id        String   @id @default(uuid())
+  // @id means this is the primary key
+  // @default(uuid()) automatically generates a unique ID
+
+  name      String
+  ownerId   String
+  // The user who created this family (admin)
+
+  createdAt DateTime @default(now())
+  // @default(now()) automatically sets the creation timestamp
+
+  // RELATIONSHIP: A Family has many Users
+  // "users" is not a column in the database - it's a relation
+  // Prisma uses this to enable: family.users to get all family members
+  users         User[]
+
+  // RELATIONSHIP: A Family can have many invite codes
+  invites       FamilyInvite[]
+
+  // Index for faster queries when searching by name
+  @@index([name])
+  @@index([ownerId])
+}
+
+// USER MODEL
+// Represents an individual user/family member
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  // @unique creates a constraint: no two users can have the same email
+
+  password  String
+  // Stores bcrypt hashed password (not plain text!)
+
+  avatar    String?
+  // ? means this field is optional (can be NULL in database)
+
+  role      UserRole @default(MEMBER)
+  // User's role in the family: ADMIN or MEMBER
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // @updatedAt automatically updates this timestamp on every change
+
+  // FOREIGN KEY: Each user belongs to one Family
+  familyId  String
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  // fields: [familyId] - the column in this table
+  // references: [id] - the column in the Family table
+  // onDelete: Cascade - if family is deleted, delete all its users
+
+  // RELATIONSHIPS: A User has many WishlistItems (items they want)
+  wishlistItems     WishlistItem[] @relation("WishlistOwner")
+  // "WishlistOwner" is a named relation (needed because we have 2 relations to WishlistItem)
+
+  // RELATIONSHIP: A User can purchase many WishlistItems (items they bought for others)
+  purchasedItems    WishlistItem[] @relation("ItemPurchaser")
+
+  // RELATIONSHIP: A User can create many family invites
+  createdInvites    FamilyInvite[]
+
+  // Indexes for performance optimization
+  @@index([email])
+  @@index([familyId])
+  @@index([role])
+}
+
+// WISHLIST ITEM MODEL
+// Represents a gift/item someone wants
+model WishlistItem {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  url         String?
+  imageUrl    String?
+  price       Float?
+  // Float for decimal numbers (e.g., 99.99)
+
+  currency    String?  @default("USD")
+  store       String?
+  quantity    Int      @default(1)
+  // Int for whole numbers
+
+  isPurchased Boolean  @default(false)
+  priority    Priority @default(MEDIUM)
+  // Priority is an enum (defined below)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // FOREIGN KEY: Each item belongs to one User (the person who wants it)
+  userId      String
+  user        User     @relation("WishlistOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  // OPTIONAL FOREIGN KEY: Purchased by another user (nullable)
+  purchasedBy   String?
+  purchaser     User?    @relation("ItemPurchaser", fields: [purchasedBy], references: [id], onDelete: SetNull)
+  // onDelete: SetNull - if purchaser is deleted, just clear this field (don't delete the item)
+
+  purchasedAt   DateTime?
+
+  // Indexes for common query patterns
+  @@index([userId])
+  @@index([isPurchased])
+  @@index([priority])
+}
+
+// FAMILY INVITE MODEL
+// Represents an invitation code to join a family
+model FamilyInvite {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  // 8-character unique invite code
+
+  familyId    String
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  // The family this invite is for
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  // The user who created this invite
+
+  expiresAt   DateTime
+  // When this invite code expires
+
+  maxUses     Int      @default(10)
+  // Maximum number of times this code can be used
+
+  currentUses Int      @default(0)
+  // How many times this code has been used
+
+  isActive    Boolean  @default(true)
+  // Whether this invite is still valid
+
+  createdAt   DateTime @default(now())
+
+  // Indexes for performance
+  @@index([code])
+  @@index([familyId])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+// ENUMS
+// Define allowed values for certain fields
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}

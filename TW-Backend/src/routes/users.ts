@@ -8,8 +8,8 @@ const router = Router()
 
 // Get current user profile
 router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
-  const user = database.getUserById(req.user!.userId)
-  
+  const user = await database.getUserById(req.user!.userId)
+
   if (!user) {
     throw createError('User not found', 404)
   }
@@ -32,8 +32,8 @@ router.put('/me', authenticateToken, asyncHandler(async (req, res) => {
   if (name) updates.name = name.trim()
   if (avatar) updates.avatar = avatar
 
-  const updatedUser = database.updateUser(userId, updates)
-  
+  const updatedUser = await database.updateUser(userId, updates)
+
   if (!updatedUser) {
     throw createError('User not found', 404)
   }
@@ -50,14 +50,14 @@ router.put('/me', authenticateToken, asyncHandler(async (req, res) => {
 // Get user by ID (for family members to view each other)
 router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params
-  const requestingUser = database.getUserById(req.user!.userId)
-  
+  const requestingUser = await database.getUserById(req.user!.userId)
+
   if (!requestingUser) {
     throw createError('Requesting user not found', 404)
   }
 
-  const targetUser = database.getUserById(id)
-  
+  const targetUser = await database.getUserById(id)
+
   if (!targetUser) {
     throw createError('User not found', 404)
   }

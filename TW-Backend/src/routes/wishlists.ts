@@ -9,7 +9,7 @@ const router = Router()
 // Get current user's wishlist
 router.get('/my', authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user!.userId
-  const items = database.getWishlistItems(userId)
+  const items = await database.getWishlistItems(userId)
 
   const response: ApiResponse = {
     success: true,
@@ -23,7 +23,7 @@ router.get('/my', authenticateToken, asyncHandler(async (req, res) => {
 // Get family's wishlists
 router.get('/family', authenticateToken, asyncHandler(async (req, res) => {
   const familyId = req.user!.familyId
-  const items = database.getWishlistItems(undefined, familyId)
+  const items = await database.getWishlistItems(undefined, familyId)
 
   // Group items by user
   const itemsByUser: { [userId: string]: WishListItem[] } = {}
@@ -35,8 +35,8 @@ router.get('/family', authenticateToken, asyncHandler(async (req, res) => {
   })
 
   // Add user information
-  const result = Object.keys(itemsByUser).map(userId => {
-    const user = database.getUserById(userId)
+  const result = await Promise.all(Object.keys(itemsByUser).map(async userId => {
+    const user = await database.getUserById(userId)
     return {
       user: user ? {
         id: user.id,
@@ -46,7 +46,7 @@ router.get('/family', authenticateToken, asyncHandler(async (req, res) => {
       } : null,
       items: itemsByUser[userId]
     }
-  })
+  }))
 
   const response: ApiResponse = {
     success: true,
@@ -60,8 +60,8 @@ router.get('/family', authenticateToken, asyncHandler(async (req, res) => {
 // Get specific user's wishlist (family members only)
 router.get('/user/:userId', authenticateToken, asyncHandler(async (req, res) => {
   const { userId } = req.params
-  const requestingUser = database.getUserById(req.user!.userId)
-  const targetUser = database.getUserById(userId)
+  const requestingUser = await database.getUserById(req.user!.userId)
+  const targetUser = await database.getUserById(userId)
 
   if (!requestingUser || !targetUser) {
     throw createError('User not found', 404)
@@ -72,7 +72,7 @@ router.get('/user/:userId', authenticateToken, asyncHandler(async (req, res) => 
     throw createError('Access denied - not in same family', 403)
   }
 
-  const items = database.getWishlistItems(userId)
+  const items = await database.getWishlistItems(userId)
 
   const response: ApiResponse = {
     success: true,
@@ -105,7 +105,7 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     throw createError('Title and URL are required', 400)
   }
 
-  const item = database.createWishlistItem(itemData)
+  const item = await database.createWishlistItem(itemData)
 
   const response: ApiResponse = {
     success: true,
@@ -121,7 +121,7 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params
   const userId = req.user!.userId
 
-  const existingItem = database.getWishlistItemById(id)
+  const existingItem = await database.getWishlistItemById(id)
   if (!existingItem) {
     throw createError('Wishlist item not found', 404)
   }
@@ -131,7 +131,7 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
     throw createError('Access denied - you can only edit your own items', 403)
   }
 
-  const updatedItem = database.updateWishlistItem(id, req.body)
+  const updatedItem = await database.updateWishlistItem(id, req.body)
 
   const response: ApiResponse = {
     success: true,
@@ -147,7 +147,7 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params
   const userId = req.user!.userId
 
-  const existingItem = database.getWishlistItemById(id)
+  const existingItem = await database.getWishlistItemById(id)
   if (!existingItem) {
     throw createError('Wishlist item not found', 404)
   }
@@ -157,7 +157,7 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
     throw createError('Access denied - you can only delete your own items', 403)
   }
 
-  const deleted = database.deleteWishlistItem(id)
+  const deleted = await database.deleteWishlistItem(id)
   if (!deleted) {
     throw createError('Failed to delete wishlist item', 500)
   }
@@ -176,14 +176,14 @@ router.patch('/:id/purchase', authenticateToken, asyncHandler(async (req, res) =
   const userId = req.user!.userId
   const { isPurchased } = req.body
 
-  const existingItem = database.getWishlistItemById(id)
+  const existingItem = await database.getWishlistItemById(id)
   if (!existingItem) {
     throw createError('Wishlist item not found', 404)
   }
 
   // Check if user is in the same family as the item owner
-  const itemOwner = database.getUserById(existingItem.userId)
-  const requestingUser = database.getUserById(userId)
+  const itemOwner = await database.getUserById(existingItem.userId)
+  const requestingUser = await database.getUserById(userId)
 
   if (!itemOwner || !requestingUser) {
     throw createError('User not found', 404)
@@ -205,7 +205,7 @@ router.patch('/:id/purchase', authenticateToken, asyncHandler(async (req, res) =
     updates.purchasedAt = undefined
   }
 
-  const updatedItem = database.updateWishlistItem(id, updates)
+  const updatedItem = await database.updateWishlistItem(id, updates)
 
   const response: ApiResponse = {
     success: true,
