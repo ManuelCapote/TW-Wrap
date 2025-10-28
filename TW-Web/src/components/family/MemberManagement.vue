@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useFamilyStore } from '@/stores/family'
 import RoleBadge from './RoleBadge.vue'
+import { User, Info } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
 
@@ -60,7 +61,10 @@ onMounted(() => {
         :class="{ 'is-current-user': member.id === currentUserId }"
       >
         <div class="member-header">
-          <div class="member-avatar">{{ member.avatar || '👤' }}</div>
+          <div class="member-avatar">
+            <User v-if="!member.avatar" :size="24" :stroke-width="2" />
+            <span v-else>{{ member.avatar }}</span>
+          </div>
           <div class="member-info">
             <div class="member-name">
               {{ member.name }}
@@ -92,7 +96,7 @@ onMounted(() => {
         </div>
 
         <div v-else-if="member.role === 'ADMIN' && member.id !== currentUserId" class="admin-note">
-          <span class="note-icon">ℹ️</span>
+          <Info :size="16" :stroke-width="2" class="note-icon" />
           <span class="note-text">Cannot remove admin members</span>
         </div>
       </div>
@@ -181,6 +185,7 @@ onMounted(() => {
   justify-content: center;
   font-size: 2rem;
   flex-shrink: 0;
+  color: white;
 }
 
 .member-info {
@@ -279,7 +284,9 @@ onMounted(() => {
 }
 
 .note-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .note-text {

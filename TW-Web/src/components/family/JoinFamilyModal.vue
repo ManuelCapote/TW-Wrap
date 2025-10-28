@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { AlertTriangle, Info } from 'lucide-vue-next'
 
 interface Props {
   isOpen: boolean
@@ -101,7 +102,9 @@ watch(() => props.isOpen, (isOpen) => {
           <div class="modal-body">
             <!-- Warning Section -->
             <div class="warning-box">
-              <div class="warning-icon">⚠️</div>
+              <div class="warning-icon">
+                <AlertTriangle :size="20" :stroke-width="2" />
+              </div>
               <div class="warning-content">
                 <p class="warning-title">Important</p>
                 <p class="warning-text">
@@ -140,13 +143,17 @@ watch(() => props.isOpen, (isOpen) => {
 
             <!-- Error Message -->
             <div v-if="error" class="error-message">
-              <span class="error-icon">⚠️</span>
+              <span class="error-icon">
+                <AlertTriangle :size="18" :stroke-width="2" />
+              </span>
               <span class="error-text">{{ error }}</span>
             </div>
 
             <!-- Validation Feedback -->
             <div v-if="inviteCode && !isValidFormat" class="validation-message">
-              <span class="validation-icon">ℹ️</span>
+              <span class="validation-icon">
+                <Info :size="18" :stroke-width="2" />
+              </span>
               <span class="validation-text">
                 Code must be exactly 8 characters (letters and numbers only)
               </span>
@@ -284,8 +291,10 @@ watch(() => props.isOpen, (isOpen) => {
 }
 
 .warning-icon {
-  font-size: 1.5rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: #f59e0b;
 }
 
 .warning-content {
@@ -391,8 +400,9 @@ watch(() => props.isOpen, (isOpen) => {
 }
 
 .error-icon {
-  font-size: 1.125rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .error-text {
@@ -413,8 +423,9 @@ watch(() => props.isOpen, (isOpen) => {
 }
 
 .validation-icon {
-  font-size: 1.125rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .validation-text {

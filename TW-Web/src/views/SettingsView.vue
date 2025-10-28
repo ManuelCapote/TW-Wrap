@@ -5,6 +5,7 @@ import FamilyInfoCard from '@/components/family/FamilyInfoCard.vue'
 import MemberManagement from '@/components/family/MemberManagement.vue'
 import InviteCodeManager from '@/components/family/InviteCodeManager.vue'
 import JoinFamilyModal from '@/components/family/JoinFamilyModal.vue'
+import { Info, Ticket, X, CheckCircle, AlertTriangle } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
 const showJoinModal = ref(false)
@@ -72,7 +73,9 @@ const handleJoinSuccess = async () => {
       <!-- Member Info (Non-Admin) -->
       <section v-else class="settings-section info-section">
         <div class="info-card">
-          <div class="info-icon">ℹ️</div>
+          <div class="info-icon">
+            <Info :size="24" :stroke-width="2" />
+          </div>
           <div class="info-content">
             <h3 class="info-title">Member Account</h3>
             <p class="info-text">
@@ -85,7 +88,7 @@ const handleJoinSuccess = async () => {
         <!-- Join Another Family Button -->
         <div class="join-family-section">
           <button @click="showJoinModal = true" class="btn-join-family">
-            <span class="btn-icon">🎫</span>
+            <Ticket :size="20" :stroke-width="2" class="btn-icon" />
             <span class="btn-text">Join Another Family</span>
           </button>
           <p class="join-hint">
@@ -96,16 +99,20 @@ const handleJoinSuccess = async () => {
 
       <!-- Success Message -->
       <div v-if="successMessage" class="success-message">
-        <span class="success-icon">✅</span>
+        <CheckCircle :size="20" :stroke-width="2" class="success-icon" />
         <span class="success-text">{{ successMessage }}</span>
-        <button @click="successMessage = null" class="success-dismiss">✕</button>
+        <button @click="successMessage = null" class="success-dismiss">
+          <X :size="18" :stroke-width="2" />
+        </button>
       </div>
 
       <!-- Error Display -->
       <div v-if="familyStore.error" class="error-message">
-        <span class="error-icon">⚠️</span>
+        <AlertTriangle :size="20" :stroke-width="2" class="error-icon" />
         <span class="error-text">{{ familyStore.error }}</span>
-        <button @click="familyStore.clearError()" class="error-dismiss">✕</button>
+        <button @click="familyStore.clearError()" class="error-dismiss">
+          <X :size="18" :stroke-width="2" />
+        </button>
       </div>
     </div>
 
@@ -206,8 +213,10 @@ const handleJoinSuccess = async () => {
 }
 
 .info-icon {
-  font-size: 2rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-primary);
 }
 
 .info-content {
@@ -241,8 +250,9 @@ const handleJoinSuccess = async () => {
 }
 
 .error-icon {
-  font-size: 1.25rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .error-text {
@@ -254,13 +264,14 @@ const handleJoinSuccess = async () => {
 .error-dismiss {
   background: transparent;
   border: none;
-  font-size: 1.25rem;
   color: var(--color-danger);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
   opacity: 0.7;
   transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
 }
 
 .error-dismiss:hover {
@@ -297,8 +308,8 @@ const handleJoinSuccess = async () => {
 }
 
 .btn-icon {
-  font-size: 1.25rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .btn-text {
@@ -324,8 +335,9 @@ const handleJoinSuccess = async () => {
 }
 
 .success-icon {
-  font-size: 1.25rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .success-text {
@@ -337,13 +349,14 @@ const handleJoinSuccess = async () => {
 .success-dismiss {
   background: transparent;
   border: none;
-  font-size: 1.25rem;
   color: #10b981;
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
   opacity: 0.7;
   transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
 }
 
 .success-dismiss:hover {

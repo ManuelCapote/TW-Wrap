@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { Check, Clipboard, Sparkles } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
 
@@ -163,7 +164,8 @@ onMounted(() => {
                 :class="{ copied: copiedCode === invite.code }"
                 title="Copy to clipboard"
               >
-                {{ copiedCode === invite.code ? '✓' : '📋' }}
+                <Check v-if="copiedCode === invite.code" :size="18" :stroke-width="2" />
+                <Clipboard v-else :size="18" :stroke-width="2" />
               </button>
             </div>
 
@@ -214,7 +216,10 @@ onMounted(() => {
     <div v-if="showNewCodeModal" class="modal-overlay" @click="closeModal">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Invite Code Created! 🎉</h3>
+          <h3>
+            <Sparkles :size="20" :stroke-width="2" class="modal-icon" />
+            Invite Code Created!
+          </h3>
           <button @click="closeModal" class="modal-close">×</button>
         </div>
 
@@ -225,9 +230,11 @@ onMounted(() => {
             <code class="new-invite-code">{{ newlyCreatedCode }}</code>
             <button
               @click="copyToClipboard(newlyCreatedCode)"
-              class="btn btn-primary"
+              class="btn btn-primary btn-with-icon"
             >
-              {{ copiedCode === newlyCreatedCode ? 'Copied! ✓' : 'Copy Code' }}
+              <Check v-if="copiedCode === newlyCreatedCode" :size="18" :stroke-width="2" />
+              <Clipboard v-else :size="18" :stroke-width="2" />
+              {{ copiedCode === newlyCreatedCode ? 'Copied!' : 'Copy Code' }}
             </button>
           </div>
 
@@ -530,11 +537,13 @@ onMounted(() => {
 .btn-icon {
   background: transparent;
   border: none;
-  font-size: 1.25rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-secondary);
 }
 
 .btn-icon:hover {
@@ -543,6 +552,12 @@ onMounted(() => {
 
 .btn-icon.copied {
   color: #10b981;
+}
+
+.btn-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Modal */
@@ -580,6 +595,15 @@ onMounted(() => {
   margin: 0;
   font-size: 1.25rem;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-icon {
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
 }
 
 .modal-close {

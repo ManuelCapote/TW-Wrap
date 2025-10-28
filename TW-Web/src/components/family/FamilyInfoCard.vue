@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { Users, Pencil, Check, X, Calendar, Crown } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
 
@@ -65,7 +66,9 @@ onMounted(() => {
 
     <div v-else class="info-content">
       <div class="info-header">
-        <div class="family-icon">👨‍👩‍👧‍👦</div>
+        <div class="family-icon">
+          <Users :size="48" :stroke-width="1.5" />
+        </div>
         <div class="family-details">
           <div v-if="!isEditing" class="family-name-display">
             <h2 class="family-name">{{ family.name }}</h2>
@@ -75,7 +78,7 @@ onMounted(() => {
               class="btn-edit"
               title="Edit family name"
             >
-              ✏️
+              <Pencil :size="18" :stroke-width="2" />
             </button>
           </div>
 
@@ -95,25 +98,26 @@ onMounted(() => {
                 :disabled="isSaving"
                 class="btn-save"
               >
-                {{ isSaving ? '...' : '✓' }}
+                <Check v-if="!isSaving" :size="18" :stroke-width="2.5" />
+                <span v-else>...</span>
               </button>
               <button
                 @click="cancelEdit"
                 :disabled="isSaving"
                 class="btn-cancel"
               >
-                ✕
+                <X :size="18" :stroke-width="2.5" />
               </button>
             </div>
           </div>
 
           <div class="family-meta">
             <span class="meta-item">
-              <span class="meta-icon">👥</span>
+              <Users :size="16" :stroke-width="2" class="meta-icon" />
               <span class="meta-text">{{ memberCount }} member{{ memberCount !== 1 ? 's' : '' }}</span>
             </span>
             <span class="meta-item">
-              <span class="meta-icon">📅</span>
+              <Calendar :size="16" :stroke-width="2" class="meta-icon" />
               <span class="meta-text">Created {{ formatDate(family.createdAt) }}</span>
             </span>
           </div>
@@ -122,7 +126,7 @@ onMounted(() => {
 
       <div class="info-footer" v-if="familyStore.isAdmin">
         <div class="admin-badge">
-          <span class="badge-icon">👑</span>
+          <Crown :size="18" :stroke-width="2" class="badge-icon" />
           <span class="badge-text">You are an Admin of this family</span>
         </div>
       </div>
@@ -158,8 +162,11 @@ onMounted(() => {
 }
 
 .family-icon {
-  font-size: 4rem;
   flex-shrink: 0;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .family-details {
@@ -184,18 +191,19 @@ onMounted(() => {
 .btn-edit {
   background: transparent;
   border: none;
-  font-size: 1.25rem;
   cursor: pointer;
   padding: 0.375rem;
   border-radius: 6px;
-  opacity: 0.6;
+  color: var(--color-text-secondary);
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-edit:hover {
-  opacity: 1;
-  background: var(--color-surface-variant);
-  transform: scale(1.1);
+  color: var(--color-text);
+  background: var(--color-surface-muted);
 }
 
 .family-name-edit {
@@ -232,7 +240,6 @@ onMounted(() => {
   height: 2.5rem;
   border: none;
   border-radius: 6px;
-  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -241,13 +248,12 @@ onMounted(() => {
 }
 
 .btn-save {
-  background: #10b981;
+  background: var(--color-success);
   color: white;
 }
 
 .btn-save:hover:not(:disabled) {
   background: #059669;
-  transform: scale(1.05);
 }
 
 .btn-save:disabled {
@@ -256,7 +262,7 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: var(--color-surface-variant);
+  background: var(--color-surface-muted);
   color: var(--color-text-secondary);
 }
 
@@ -280,7 +286,9 @@ onMounted(() => {
 }
 
 .meta-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
 }
 
 .info-footer {
@@ -293,7 +301,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  background: var(--color-warning);
   color: #78350f;
   border-radius: 9999px;
   font-size: 0.875rem;
@@ -301,7 +309,8 @@ onMounted(() => {
 }
 
 .badge-icon {
-  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
 }
 
 /* Responsive */
@@ -310,10 +319,6 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     text-align: center;
-  }
-
-  .family-icon {
-    font-size: 3rem;
   }
 
   .family-name {
