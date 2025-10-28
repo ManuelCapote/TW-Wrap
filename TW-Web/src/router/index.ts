@@ -36,9 +36,18 @@ const router = createRouter({
       path: '/family',
       name: 'family',
       component: () => import('../views/FamilyView.vue'),
-      meta: { 
+      meta: {
         requiresAuth: true,
         title: 'Family Wishlists - TW-Web'
+      }
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../views/SettingsView.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Settings - TW-Web'
       }
     }
   ]

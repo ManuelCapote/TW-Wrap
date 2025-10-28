@@ -23,6 +23,7 @@ const handleLogout = async () => {
           <RouterLink to="/" class="nav-link">Dashboard</RouterLink>
           <RouterLink to="/my-wishlist" class="nav-link">Wishlist</RouterLink>
           <RouterLink to="/family" class="nav-link">Family</RouterLink>
+          <RouterLink to="/settings" class="nav-link">Settings</RouterLink>
         </nav>
 
         <div class="user-section">
