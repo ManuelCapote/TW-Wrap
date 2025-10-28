@@ -2,7 +2,6 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -27,16 +26,11 @@ const handleLogout = async () => {
         </nav>
 
         <div class="user-section">
-          <ThemeToggle />
           <div class="user-avatar">{{ authStore.userAvatar }}</div>
           <button @click="handleLogout" class="logout-btn">Logout</button>
         </div>
       </div>
     </header>
-
-    <div v-else class="guest-theme-toggle">
-      <ThemeToggle />
-    </div>
 
     <main class="main">
       <RouterView />
@@ -151,12 +145,6 @@ const handleLogout = async () => {
   width: 100%;
 }
 
-.guest-theme-toggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--spacing-md);
-}
-
 @media (max-width: 768px) {
   .header-content {
     flex-wrap: wrap;
@@ -178,11 +166,6 @@ const handleLogout = async () => {
 
   .main {
     padding: var(--spacing-lg) var(--spacing-md);
-  }
-
-  .guest-theme-toggle {
-    justify-content: center;
-    padding: var(--spacing-md) var(--spacing-lg) 0;
   }
 
   .user-section {
