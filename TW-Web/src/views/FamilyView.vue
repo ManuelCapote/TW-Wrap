@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import type { User, WishListItem } from '@/types'
+import { ChevronDown, ChevronRight, Check } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -168,7 +169,10 @@ const getPriorityColor = (priority: string) => {
           <h3>{{ member.name }}</h3>
           <p>{{ mockWishlistItems[member.id]?.length || 0 }} items</p>
         </div>
-        <div class="expand-arrow">{{ selectedMember === member.id ? '▼' : '▶' }}</div>
+        <div class="expand-arrow">
+          <ChevronDown v-if="selectedMember === member.id" :size="20" :stroke-width="2" />
+          <ChevronRight v-else :size="20" :stroke-width="2" />
+        </div>
       </div>
     </div>
 
@@ -186,9 +190,12 @@ const getPriorityColor = (priority: string) => {
             <div class="item-header">
               <h3>{{ item.title }}</h3>
               <div class="header-badges">
-                <div v-if="item.isPurchased" class="purchased-badge">✓ Purchased</div>
-                <div 
-                  class="priority-badge" 
+                <div v-if="item.isPurchased" class="purchased-badge">
+                  <Check :size="14" :stroke-width="2" class="check-icon" />
+                  Purchased
+                </div>
+                <div
+                  class="priority-badge"
                   :style="{ backgroundColor: getPriorityColor(item.priority) }"
                 >
                   {{ item.priority }}
@@ -308,8 +315,8 @@ const getPriorityColor = (priority: string) => {
 
 .expand-arrow {
   color: var(--color-text-secondary);
-  font-size: 14px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 
 .member-wishlist h2 {
@@ -359,6 +366,15 @@ const getPriorityColor = (priority: string) => {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.check-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .item-header {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Palette, BookOpen } from 'lucide-vue-next'
 </script>
 
 <template>
@@ -13,7 +14,10 @@
           <p>3 items</p>
           <div class="recent-items">
             <div class="item-preview">
-              <span>🎨 Art Supplies Set</span>
+              <span class="item-name">
+                <Palette :size="16" :stroke-width="2" class="item-icon" />
+                Art Supplies Set
+              </span>
               <span class="price">$45.99</span>
             </div>
           </div>
@@ -26,7 +30,10 @@
           <p>5 items</p>
           <div class="recent-items">
             <div class="item-preview">
-              <span>📚 Programming Book</span>
+              <span class="item-name">
+                <BookOpen :size="16" :stroke-width="2" class="item-icon" />
+                Programming Book
+              </span>
               <span class="price">$29.99</span>
             </div>
           </div>
@@ -110,6 +117,19 @@
   padding: var(--spacing-sm) 0;
   border-top: 1px solid var(--color-border);
   font-size: 14px;
+}
+
+.item-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
 }
 
 .price {

@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import type { WishListItem, ProductPreview } from '@/types'
 import { parseProductUrl, isValidProductUrl } from '@/utils/urlParser'
+import { CheckCircle, MapPin } from 'lucide-vue-next'
 
 interface Emits {
   (e: 'save', item: Omit<WishListItem, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): void
@@ -169,13 +170,17 @@ watch(trimmedUrl, (currentUrl) => {
 
     <!-- Product Preview -->
     <div v-if="productPreview" class="product-preview">
-      <h4>✅ Successfully Parsed</h4>
+      <h4>
+        <CheckCircle :size="16" :stroke-width="2" class="success-icon" />
+        Successfully Parsed
+      </h4>
       <div class="preview-content">
         <div class="preview-details">
           <h5>{{ productPreview.title }}</h5>
           <div class="preview-meta">
             <span v-if="productPreview.store" class="preview-store">
-              📍 {{ productPreview.store }}
+              <MapPin :size="14" :stroke-width="2" class="store-icon" />
+              {{ productPreview.store }}
             </span>
             <span class="extracted-note">Name and store extracted from URL</span>
           </div>
@@ -394,6 +399,15 @@ watch(trimmedUrl, (currentUrl) => {
   margin: 0 0 var(--spacing-md) 0;
   color: var(--color-success);
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.success-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .preview-content {
@@ -427,6 +441,15 @@ watch(trimmedUrl, (currentUrl) => {
 .preview-store {
   color: var(--color-text-secondary);
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.store-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .extracted-note {
