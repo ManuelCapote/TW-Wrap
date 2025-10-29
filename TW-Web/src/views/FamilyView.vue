@@ -1,8 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import type { User, WishListItem } from '@/types'
-import { ChevronDown, ChevronRight, Check } from 'lucide-vue-next'
+import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue'
+import {
+  Users,
+  Gift,
+  Sparkles,
+  ExternalLink,
+  Check,
+  Package,
+  Store,
+  Wallet,
+  Clock,
+  ChevronDown,
+  HeartHandshake
+} from 'lucide-vue-next'
+import RoleBadge from '@/components/family/RoleBadge.vue'
+import { generateAvatarDataUri } from '@/utils/avatar'
 
 const route = useRoute()
 
@@ -39,17 +54,7 @@ const familyMembers = ref<User[]>([
   }
 ])
 
-const selectedMember = ref<string>('')
-
-// Auto-select member from query parameter
-onMounted(() => {
-  const memberParam = route.query.member as string
-  if (memberParam && familyMembers.value.some(m => m.id === memberParam)) {
-    selectedMember.value = memberParam
-  }
-})
-
-const mockWishlistItems: Record<string, WishListItem[]> = {
+const mockWishlistItems = ref<Record<string, WishListItem[]>>({
   mom: [
     {
       id: '1',
@@ -91,7 +96,7 @@ const mockWishlistItems: Record<string, WishListItem[]> = {
       title: 'Standing Desk Converter',
       description: 'Adjustable height desk riser',
       url: 'https://walmart.com/standing-desk',
-      price: 199.00,
+      price: 199.0,
       currency: 'USD',
       store: 'Walmart',
       quantity: 1,
@@ -129,12 +134,75 @@ const mockWishlistItems: Record<string, WishListItem[]> = {
       updatedAt: new Date()
     }
   ]
+})
+
+const memberSummaries = computed(() =>
+  familyMembers.value.map(member => {
+    const items = mockWishlistItems.value[member.id] || []
+    const purchased = items.filter(item => item.isPurchased).length
+    return {
+      member,
+      items,
+      totalItems: items.length,
+      purchased,
+      outstanding: items.length - purchased
+    }
+  })
+)
+
+const totalMembers = computed(() => familyMembers.value.length)
+
+const totalWishlistItems = computed(() =>
+  Object.values(mockWishlistItems.value).reduce((sum, list) => sum + list.length, 0)
+)
+
+const totalPurchasedItems = computed(() =>
+  Object.values(mockWishlistItems.value).reduce(
+    (sum, list) => sum + list.filter(item => item.isPurchased).length,
+    0
+  )
+)
+
+const outstandingItems = computed(() => totalWishlistItems.value - totalPurchasedItems.value)
+const activeWishlists = computed(() => memberSummaries.value.filter(summary => summary.totalItems > 0).length)
+
+const highlightedMemberId = computed(() => (route.query.member as string) || '')
+
+const generatedAvatars = computed(() => {
+  const map: Record<string, string> = {}
+  familyMembers.value.forEach(member => {
+    const seed = member.email || member.id
+    map[member.id] = generateAvatarDataUri(seed)
+  })
+  return map
+})
+
+const formatPrice = (item: WishListItem) => {
+  if (!item.price) return null
+  const currency = item.currency || 'USD'
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
+    }).format(item.price)
+  } catch {
+    return `${currency} ${item.price.toFixed(2)}`
+  }
+}
+
+const formatUpdatedAt = (item: WishListItem) => {
+  const updated = new Date(item.updatedAt)
+  return updated.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
 }
 
 const markAsPurchased = (memberId: string, itemId: string) => {
-  const items = mockWishlistItems[memberId]
-  const item = items?.find(item => item.id === itemId)
-  if (item) {
+  const items = mockWishlistItems.value[memberId]
+  const item = items?.find(current => current.id === itemId)
+  if (item && !item.isPurchased) {
     item.isPurchased = true
     item.purchasedBy = 'current-user'
     item.purchasedAt = new Date()
@@ -143,419 +211,268 @@ const markAsPurchased = (memberId: string, itemId: string) => {
 </script>
 
 <template>
-  <div class="family-view">
-    <h1>Family Wishlists</h1>
-    <p class="subtitle">See what your family members are wishing for</p>
-
-    <div class="family-members">
-      <div 
-        v-for="member in familyMembers" 
-        :key="member.id"
-        class="member-card"
-        :class="{ active: selectedMember === member.id }"
-        @click="selectedMember = selectedMember === member.id ? '' : member.id"
-      >
-        <div class="member-avatar">{{ member.avatar }}</div>
-        <div class="member-info">
-          <h3>{{ member.name }}</h3>
-          <p>{{ mockWishlistItems[member.id]?.length || 0 }} items</p>
+  <div class="min-h-screen bg-background text-text">
+    <div class="mx-auto max-w-5xl space-y-12 px-6 py-16 md:px-8 md:py-20">
+      <section class="space-y-4">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
+          Family wishlists
+        </p>
+        <div class="space-y-3">
+          <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">
+            Stay in sync with every wishlist
+          </h1>
+          <p class="max-w-2xl text-base text-text-secondary md:text-lg">
+            Browse what each family member is collecting, spot priorities, and celebrate gifts that
+            have already landed.
+          </p>
         </div>
-        <div class="expand-arrow">
-          <ChevronDown v-if="selectedMember === member.id" :size="20" :stroke-width="2" />
-          <ChevronRight v-else :size="20" :stroke-width="2" />
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <div v-if="selectedMember" class="member-wishlist">
-      <h2>{{ familyMembers.find(m => m.id === selectedMember)?.name }}'s Wishlist</h2>
-      
-      <div class="wishlist-items">
-        <div 
-          v-for="item in mockWishlistItems[selectedMember]" 
-          :key="item.id" 
-          class="item-card"
-          :class="{ purchased: item.isPurchased }"
-        >
-          <div class="item-details">
-            <div class="item-header">
-              <h3>{{ item.title }}</h3>
-              <div class="header-badges">
-                <div v-if="item.isPurchased" class="purchased-badge">
-                  <Check :size="14" :stroke-width="2" class="check-icon" />
-                  Purchased
-                </div>
-                <div
-                  class="priority-badge"
-                  :class="'priority-' + item.priority"
-                >
-                  {{ item.priority }}
-                </div>
-              </div>
+      <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Members</p>
+              <p class="mt-3 text-3xl font-semibold tracking-tight">{{ totalMembers }}</p>
+              <p class="mt-1 text-xs text-text-secondary">Everyone with access right now</p>
             </div>
-            
-            <div class="item-meta">
-              <span v-if="item.store" class="store">{{ item.store }}</span>
-            </div>
-            
-            <div class="item-actions">
-              <a 
-                v-if="item.url" 
-                :href="item.url" 
-                target="_blank" 
-                rel="noopener" 
-                class="view-btn"
-              >
-                View Product
-              </a>
-              <span v-else class="no-link-badge">No link provided</span>
-              <button 
-                v-if="!item.isPurchased"
-                @click="markAsPurchased(selectedMember, item.id)" 
-                class="purchase-btn"
-              >
-                Mark as Purchased
-              </button>
-              <span v-else class="purchased-text">
-                Purchased by {{ item.purchasedBy === 'current-user' ? 'you' : item.purchasedBy }}
-              </span>
+            <div class="rounded-full bg-primary-soft p-3 text-primary">
+              <Users :size="20" :stroke-width="1.8" />
             </div>
           </div>
         </div>
-      </div>
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Lists with items</p>
+              <p class="mt-3 text-3xl font-semibold tracking-tight">{{ activeWishlists }}</p>
+              <p class="mt-1 text-xs text-text-secondary">Members with at least one request</p>
+            </div>
+            <div class="rounded-full bg-primary-soft p-3 text-primary">
+              <Gift :size="20" :stroke-width="1.8" />
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Outstanding items</p>
+              <p class="mt-3 text-3xl font-semibold tracking-tight">{{ outstandingItems }}</p>
+              <p class="mt-1 text-xs text-text-secondary">
+                Waiting for someone to pick up
+              </p>
+            </div>
+            <div class="rounded-full bg-primary-soft p-3 text-primary">
+              <Sparkles :size="20" :stroke-width="1.8" />
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Purchased</p>
+              <p class="mt-3 text-3xl font-semibold tracking-tight">{{ totalPurchasedItems }}</p>
+              <p class="mt-1 text-xs text-text-secondary">Already taken care of</p>
+            </div>
+            <div class="rounded-full bg-primary-soft p-3 text-primary">
+              <HeartHandshake :size="20" :stroke-width="1.8" />
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div v-if="!mockWishlistItems[selectedMember]?.length" class="empty-wishlist">
-        <p>{{ familyMembers.find(m => m.id === selectedMember)?.name }} hasn't added any items yet.</p>
-      </div>
-    </div>
+      <section class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-text">Family members</p>
+            <p class="mt-1 text-xs text-text-secondary">
+              Click into any member to see their latest wishlist items.
+            </p>
+          </div>
+        </div>
 
-    <div v-if="!selectedMember" class="no-selection">
-      <p>Select a family member to view their wishlist</p>
+        <div class="mt-6 space-y-4">
+          <Disclosure
+            v-for="summary in memberSummaries"
+            :key="summary.member.id"
+            v-slot="{ open }"
+            :default-open="highlightedMemberId === summary.member.id"
+            as="article"
+            class="group rounded-2xl border border-border bg-surface-muted/40 px-3 py-2 shadow-sm shadow-black/10 transition duration-200 ease-soft-snap hover:border-primary hover:shadow-md hover:shadow-primary/15"
+            :class="[
+              highlightedMemberId === summary.member.id ? 'border-primary shadow-md shadow-primary/15' : ''
+            ]"
+          >
+            <div class="flex flex-col gap-3 rounded-xl px-3 py-3 transition duration-200 ease-soft-snap hover:bg-surface-muted/60">
+              <div class="flex flex-wrap items-center gap-3">
+                <DisclosureButton
+                  class="flex flex-1 items-center justify-between gap-4 text-sm font-semibold text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  <div class="flex flex-1 items-center gap-3">
+                    <span class="flex items-center gap-2 text-lg font-semibold text-text">
+                      <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-base text-primary">
+                        <img
+                          :src="generatedAvatars[summary.member.id]"
+                          :alt="`${summary.member.name} avatar`"
+                          class="h-full w-full object-cover"
+                        />
+                      </span>
+                      <span>{{ summary.member.name }}</span>
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary"
+                    >
+                      {{ summary.totalItems }} items
+                    </span>
+                    <RoleBadge :role="summary.member.role" size="small" />
+                    <a
+                      v-if="summary.items.length"
+                      :href="`/family?member=${summary.member.id}`"
+                      class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover"
+                      @click.stop
+                    >
+                      <ExternalLink :size="12" :stroke-width="1.8" />
+                      Share
+                    </a>
+                  </div>
+                  <ChevronDown
+                    :class="[
+                      'h-4 w-4 flex-shrink-0 text-text-tertiary transition duration-200 ease-soft-snap',
+                      open ? 'rotate-180' : ''
+                    ]"
+                  />
+                </DisclosureButton>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary"
+                  >
+                    Outstanding {{ summary.outstanding }}
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary"
+                  >
+                    Purchased {{ summary.purchased }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <TransitionRoot
+              as="template"
+              enter="transition duration-150 ease-out"
+              enter-from="transform scale-95 opacity-0"
+              enter-to="transform scale-100 opacity-100"
+              leave="transition duration-100 ease-in"
+              leave-from="transform scale-100 opacity-100"
+              leave-to="transform scale-95 opacity-0"
+            >
+              <DisclosurePanel
+                class="space-y-4 rounded-xl border border-border bg-surface-muted/40 px-4 py-4 text-sm text-text-secondary"
+              >
+                <div
+                  v-if="summary.items.length"
+                  class="grid gap-4 md:grid-cols-2"
+                >
+                  <div
+                    v-for="item in summary.items"
+                    :key="item.id"
+                    class="flex flex-col gap-3 rounded-xl border border-border bg-background px-4 py-4 shadow-sm shadow-black/10"
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <h3 class="text-sm font-semibold text-text">
+                            {{ item.title }}
+                          </h3>
+                          <span
+                            v-if="item.isPurchased"
+                            class="inline-flex items-center gap-1 rounded-full border border-success-soft bg-success-soft px-2 py-0.5 text-[11px] font-semibold text-success"
+                          >
+                            <Check :size="12" :stroke-width="1.8" />
+                            Purchased
+                          </span>
+                          <span
+                            v-else
+                            class="inline-flex items-center gap-1 rounded-full border border-primary-soft bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary"
+                          >
+                            {{ item.priority.charAt(0).toUpperCase() + item.priority.slice(1) }} priority
+                          </span>
+                        </div>
+                        <p v-if="item.description" class="mt-1 text-xs text-text-secondary">
+                          {{ item.description }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                      <span class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 font-semibold">
+                        <Package :size="12" :stroke-width="1.8" class="text-text-tertiary" />
+                        Qty {{ item.quantity }}
+                      </span>
+                      <span
+                        v-if="item.store"
+                        class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 font-semibold"
+                      >
+                        <Store :size="12" :stroke-width="1.8" class="text-text-tertiary" />
+                        {{ item.store }}
+                      </span>
+                      <span
+                        v-if="formatPrice(item)"
+                        class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 font-semibold"
+                      >
+                        <Wallet :size="12" :stroke-width="1.8" class="text-text-tertiary" />
+                        {{ formatPrice(item) }}
+                      </span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-text-tertiary">
+                      <div class="inline-flex items-center gap-2">
+                        <Clock :size="12" :stroke-width="1.8" />
+                        Updated {{ formatUpdatedAt(item) }}
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <a
+                          v-if="item.url"
+                          :href="item.url"
+                          target="_blank"
+                          rel="noopener"
+                          class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover"
+                        >
+                          <ExternalLink :size="12" :stroke-width="1.8" />
+                          View
+                        </a>
+                        <span
+                          v-else
+                          class="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-semibold text-text-tertiary"
+                        >
+                          <ExternalLink :size="12" :stroke-width="1.8" />
+                          No link
+                        </span>
+                        <button
+                          v-if="!item.isPurchased"
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary"
+                          @click="markAsPurchased(summary.member.id, item.id)"
+                        >
+                          Mark purchased
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  v-else
+                  class="rounded-xl border border-dashed border-border bg-background px-4 py-6 text-center text-sm text-text-secondary"
+                >
+                  Nothing on this list yet. Encourage {{ summary.member.name }} to add a few ideas.
+                </div>
+              </DisclosurePanel>
+            </TransitionRoot>
+          </Disclosure>
+        </div>
+      </section>
     </div>
   </div>
 </template>
-
-<style scoped>
-.family-view {
-  max-width: 1000px;
-}
-
-.subtitle {
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xl);
-  font-size: 15px;
-}
-
-.family-members {
-  display: grid;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-}
-
-.member-card {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.member-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary);
-}
-
-.member-card.active {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  box-shadow: var(--shadow-md);
-}
-
-.member-avatar {
-  font-size: 2rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface);
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-}
-
-.member-info {
-  flex: 1;
-}
-
-.member-info h3 {
-  margin: 0 0 var(--spacing-xs) 0;
-  color: var(--color-text);
-  font-size: 18px;
-}
-
-.member-info p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-.expand-arrow {
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.member-wishlist h2 {
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-text);
-}
-
-.wishlist-items {
-  display: grid;
-  gap: var(--spacing-lg);
-}
-
-.item-card {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-}
-
-.item-card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.item-card.purchased {
-  opacity: 0.7;
-  background: var(--color-surface);
-}
-
-.item-details {
-  width: 100%;
-}
-
-.header-badges {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.purchased-badge {
-  background: var(--color-success);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.check-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-md);
-}
-
-.item-header h3 {
-  margin: 0;
-  color: var(--color-text);
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.priority-badge {
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.priority-badge.priority-high {
-  background-color: var(--priority-high);
-}
-
-.priority-badge.priority-medium {
-  background-color: var(--priority-medium);
-}
-
-.priority-badge.priority-low {
-  background-color: var(--priority-low);
-}
-
-.item-meta {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.store {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  background: var(--color-surface);
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-}
-
-.item-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.no-link-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  background: var(--color-background);
-  color: var(--color-text-secondary);
-  border: 1px dashed var(--color-border);
-}
-
-.view-btn {
-  background: var(--color-primary);
-  color: white;
-  text-decoration: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  display: inline-block;
-}
-
-.view-btn:hover {
-  background: var(--color-primary-hover);
-  text-decoration: none;
-}
-
-.purchase-btn {
-  background: var(--color-success);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.purchase-btn:hover {
-  background: #2e7d32;
-}
-
-.purchased-text {
-  color: var(--color-success);
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.empty-wishlist, .no-selection {
-  text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  color: var(--color-text-secondary);
-}
-
-.empty-wishlist p, .no-selection p {
-  margin: 0;
-  font-size: 15px;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .subtitle {
-    font-size: 14px;
-  }
-
-  .member-avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-  }
-
-  .member-wishlist h2 {
-    font-size: 1.3rem;
-  }
-
-  .item-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .header-badges {
-    align-self: flex-start;
-  }
-
-  .item-header h3 {
-    font-size: 16px;
-  }
-
-  .item-actions > * {
-    flex: 1;
-    text-align: center;
-    min-width: 120px;
-  }
-}
-
-@media (max-width: 480px) {
-  .family-view h1 {
-    font-size: 1.3rem;
-  }
-
-  .subtitle {
-    font-size: 13px;
-  }
-
-  .member-avatar {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3rem;
-  }
-
-  .member-wishlist h2 {
-    font-size: 1.2rem;
-  }
-
-  .item-header h3 {
-    font-size: 15px;
-  }
-
-  .item-actions {
-    flex-direction: column;
-  }
-
-  .item-actions > * {
-    width: 100%;
-    min-width: 0;
-  }
-}
-</style>

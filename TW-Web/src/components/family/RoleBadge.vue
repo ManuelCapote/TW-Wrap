@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { UserRole } from '@/types'
-import { Crown, User } from 'lucide-vue-next'
+import { computed } from 'vue'
 import type { Component } from 'vue'
+import type { UserRole } from '@/types'
+import { ShieldCheck, UserRound } from 'lucide-vue-next'
 
 interface Props {
   role: UserRole
@@ -15,69 +16,44 @@ const props = withDefaults(defineProps<Props>(), {
 interface BadgeConfig {
   label: string
   icon: Component
-  class: string
+  classes: string
 }
 
 const badgeConfig: Record<UserRole, BadgeConfig> = {
   ADMIN: {
     label: 'Admin',
-    icon: Crown,
-    class: 'badge-admin'
+    icon: ShieldCheck,
+    classes: 'border-primary/40 bg-primary-soft text-primary'
   },
   MEMBER: {
     label: 'Member',
-    icon: User,
-    class: 'badge-member'
+    icon: UserRound,
+    classes: 'border-border bg-background text-text-secondary'
   }
 }
 
-const config = badgeConfig[props.role]
-const iconSize = props.size === 'small' ? 12 : 14
+const iconSize = computed(() => (props.size === 'small' ? 12 : 14))
+
+const sizeClasses = computed(() =>
+  props.size === 'small'
+    ? 'px-2 py-0.5 text-[11px] gap-1'
+    : 'px-3 py-1 text-xs gap-2'
+)
+
+const badgeClasses = computed(
+  () =>
+    `inline-flex items-center rounded-full border font-semibold transition-colors duration-150 ease-soft-snap ${sizeClasses.value} ${badgeConfig[props.role].classes}`
+)
 </script>
 
 <template>
-  <span :class="['role-badge', config.class, `badge-${size}`]">
-    <component :is="config.icon" :size="iconSize" :stroke-width="2" class="badge-icon" />
-    <span class="badge-label">{{ config.label }}</span>
+  <span :class="badgeClasses">
+    <component
+      :is="badgeConfig[role].icon"
+      :size="iconSize"
+      :stroke-width="1.8"
+      class="text-current"
+    />
+    <span>{{ badgeConfig[role].label }}</span>
   </span>
 </template>
-
-<style scoped>
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.75rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.badge-small {
-  padding: 0.125rem 0.5rem;
-  font-size: 0.625rem;
-  gap: 0.125rem;
-}
-
-.badge-admin {
-  background: var(--color-warning);
-  color: #78350f;
-}
-
-.badge-member {
-  background: var(--color-surface-muted);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-}
-
-.badge-icon {
-  display: flex;
-  align-items: center;
-}
-
-.badge-label {
-  font-size: inherit;
-}
-</style>

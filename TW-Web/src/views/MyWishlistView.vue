@@ -1,13 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import type { Component } from 'vue'
 import type { WishListItem } from '@/types'
-import EditItemForm from '@/components/EditItemForm.vue'
 import AddItemForm from '@/components/AddItemForm.vue'
+import EditItemForm from '@/components/EditItemForm.vue'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
+import {
+  Flame,
+  CircleDot,
+  Feather,
+  Package,
+  Store,
+  Wallet,
+  Clock,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  ExternalLink
+} from 'lucide-vue-next'
 
 const showAddForm = ref(false)
 const editingItemId = ref<string | null>(null)
 
-const mockWishlistItems = ref<WishListItem[]>([
+const wishlistItems = ref<WishListItem[]>([
   {
     id: '1',
     userId: 'user1',
@@ -51,6 +66,45 @@ const mockWishlistItems = ref<WishListItem[]>([
   }
 ])
 
+const totalItems = computed(() => wishlistItems.value.length)
+const purchasedItems = computed(() => wishlistItems.value.filter(item => item.isPurchased).length)
+const pendingItems = computed(() => totalItems.value - purchasedItems.value)
+const highPriorityPending = computed(() =>
+  wishlistItems.value.filter(item => item.priority === 'high' && !item.isPurchased).length
+)
+const hasItems = computed(() => totalItems.value > 0)
+const editingItem = computed(() =>
+  editingItemId.value
+    ? wishlistItems.value.find(item => item.id === editingItemId.value) ?? null
+    : null
+)
+
+const priorityStyles: Record<
+  WishListItem['priority'],
+  { label: string; class: string; icon: Component }
+> = {
+  high: {
+    label: 'High',
+    class: 'border border-danger-soft bg-danger-soft text-danger',
+    icon: Flame
+  },
+  medium: {
+    label: 'Medium',
+    class: 'border border-warning-soft bg-warning-soft text-warning',
+    icon: CircleDot
+  },
+  low: {
+    label: 'Low',
+    class: 'border border-success-soft bg-success-soft text-success',
+    icon: Feather
+  }
+}
+
+const openAddForm = () => {
+  editingItemId.value = null
+  showAddForm.value = true
+}
+
 const addItem = (itemData: Omit<WishListItem, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
   const newItem: WishListItem = {
     id: Date.now().toString(),
@@ -59,24 +113,27 @@ const addItem = (itemData: Omit<WishListItem, 'id' | 'userId' | 'createdAt' | 'u
     createdAt: new Date(),
     updatedAt: new Date()
   }
-  
-  mockWishlistItems.value.push(newItem)
+
+  wishlistItems.value.push(newItem)
   showAddForm.value = false
 }
 
 const removeItem = (id: string) => {
-  mockWishlistItems.value = mockWishlistItems.value.filter(item => item.id !== id)
+  wishlistItems.value = wishlistItems.value.filter(item => item.id !== id)
+  if (editingItemId.value === id) {
+    editingItemId.value = null
+  }
 }
 
 const editItem = (id: string) => {
-  editingItemId.value = id
   showAddForm.value = false
+  editingItemId.value = id
 }
 
 const saveItemEdit = (updatedItem: WishListItem) => {
-  const index = mockWishlistItems.value.findIndex(item => item.id === updatedItem.id)
+  const index = wishlistItems.value.findIndex(item => item.id === updatedItem.id)
   if (index !== -1) {
-    mockWishlistItems.value[index] = updatedItem
+    wishlistItems.value[index] = updatedItem
   }
   editingItemId.value = null
 }
@@ -88,296 +145,272 @@ const cancelEdit = () => {
 const cancelAdd = () => {
   showAddForm.value = false
 }
+
+const formatPrice = (item: WishListItem) => {
+  if (!item.price) return null
+  const currency = item.currency || 'USD'
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
+    }).format(item.price)
+  } catch {
+    return `${currency} ${item.price.toFixed(2)}`
+  }
+}
+
+const formatUpdatedAt = (item: WishListItem) => {
+  const updated = new Date(item.updatedAt)
+  return updated.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
 </script>
 
 <template>
-  <div class="my-wishlist">
-    <div class="header">
-      <h1>My Wishlist</h1>
-      <button @click="showAddForm = true" class="add-btn">+ Add Item</button>
-    </div>
-
-    <!-- Add Form -->
-    <AddItemForm
-      v-if="showAddForm"
-      @save="addItem"
-      @cancel="cancelAdd"
-    />
-
-    <!-- Edit Form -->
-    <EditItemForm
-      v-if="editingItemId"
-      :item="mockWishlistItems.find(item => item.id === editingItemId)!"
-      @save="saveItemEdit"
-      @cancel="cancelEdit"
-    />
-
-    <div class="wishlist-items">
-      <div v-for="item in mockWishlistItems" :key="item.id" class="item-card" :class="{ editing: editingItemId === item.id }">
-        <div class="item-details">
-          <div class="item-header">
-            <h3>{{ item.title }}</h3>
-            <div
-              class="priority-badge"
-              :class="'priority-' + item.priority"
-            >
-              {{ item.priority }}
-            </div>
+  <div class="min-h-screen bg-background text-text">
+    <div class="mx-auto max-w-4xl space-y-12 px-6 py-16 md:px-8 md:py-20">
+      <section class="space-y-4">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
+          My wishlist
+        </p>
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div class="space-y-3">
+            <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">
+              Curate gifts you’ll love
+            </h1>
+            <p class="max-w-2xl text-base text-text-secondary md:text-lg">
+              Keep your personal wishlist tidy, add inspiration quickly, and share context that helps your family gift with confidence.
+            </p>
           </div>
-          
-          <div class="item-meta">
-            <span v-if="item.store" class="store">{{ item.store }}</span>
-          </div>
-          
-          <div class="item-actions">
-            <a 
-              v-if="item.url" 
-              :href="item.url" 
-              target="_blank" 
-              rel="noopener" 
-              class="view-btn"
-            >
-              View Product
-            </a>
-            <span v-else class="no-link-badge">No link provided</span>
-            <button @click="editItem(item.id)" class="edit-btn">Edit</button>
-            <button @click="removeItem(item.id)" class="remove-btn">Remove</button>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            @click="openAddForm"
+          >
+            Add item
+          </button>
+        </div>
+      </section>
+
+      <section class="grid gap-5 md:grid-cols-3">
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Total items</p>
+          <p class="mt-3 text-3xl font-semibold tracking-tight">{{ totalItems }}</p>
+          <p class="mt-1 text-xs text-text-secondary">
+            {{ pendingItems }} active • {{ purchasedItems }} fulfilled
+          </p>
+        </div>
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">High priority</p>
+          <p class="mt-3 text-3xl font-semibold tracking-tight">{{ highPriorityPending }}</p>
+          <p class="mt-1 text-xs text-text-secondary">
+            Items marked “Need soon”
+          </p>
+        </div>
+        <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+          <p class="text-xs uppercase tracking-[0.35em] text-text-tertiary">Status</p>
+          <p class="mt-3 text-3xl font-semibold tracking-tight">
+            {{
+              totalItems
+                ? Math.round((purchasedItems / totalItems) * 100)
+                : 0
+            }}%
+          </p>
+          <p class="mt-1 text-xs text-text-secondary">Completed</p>
+        </div>
+      </section>
+
+      <section class="space-y-6">
+        <Transition name="fade" mode="out-in">
+          <AddItemForm
+            v-if="showAddForm"
+            key="add-form"
+            @save="addItem"
+            @cancel="cancelAdd"
+          />
+        </Transition>
+        <Transition name="fade" mode="out-in">
+          <EditItemForm
+            v-if="editingItem"
+            :key="editingItem?.id"
+            :item="editingItem"
+            @save="saveItemEdit"
+            @cancel="cancelEdit"
+          />
+        </Transition>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-text">Wishlist items</p>
+            <p class="mt-1 text-xs text-text-secondary">
+              Items are saved locally for now—perfect for shaping the experience before wiring up the API.
+            </p>
           </div>
         </div>
-      </div>
-    </div>
 
-    <div v-if="mockWishlistItems.length === 0" class="empty-state">
-      <h3>Your wishlist is empty</h3>
-      <p>Add some items you'd love to receive as gifts!</p>
-      <button @click="showAddForm = true" class="add-btn">Add Your First Item</button>
+        <div v-if="hasItems" class="mt-6 space-y-4">
+          <Disclosure
+            v-for="item in wishlistItems"
+            :key="item.id"
+            v-slot="{ open }"
+            as="article"
+            class="group rounded-2xl border border-border bg-surface-muted/40 px-3 py-2 shadow-sm shadow-black/10 transition duration-200 ease-soft-snap hover:border-primary hover:shadow-md hover:shadow-primary/15"
+          >
+            <div class="flex flex-col gap-3 rounded-xl px-3 py-3 transition duration-200 ease-soft-snap hover:bg-surface-muted/60">
+              <div class="flex flex-wrap items-center gap-3">
+                <DisclosureButton
+                  class="flex flex-1 items-center justify-between gap-4 text-sm font-semibold text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  <div class="flex flex-1 items-center gap-3">
+                    <span class="flex-1 truncate">{{ item.title }}</span>
+                <a
+                  v-if="item.url"
+                  :href="item.url"
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover"
+                  @click.stop
+                >
+                  <ExternalLink :size="12" :stroke-width="1.8" />
+                  View
+                </a>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-semibold text-text-tertiary"
+                    >
+                      <ExternalLink :size="12" :stroke-width="1.8" />
+                      No link
+                    </span>
+                  </div>
+                  <ChevronDown
+                    :class="[
+                      'h-4 w-4 flex-shrink-0 text-text-tertiary transition duration-200 ease-soft-snap',
+                      open ? 'rotate-180' : ''
+                    ]"
+                  />
+                </DisclosureButton>
+
+                <span
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  :class="priorityStyles[item.priority].class"
+                >
+                  <component
+                    :is="priorityStyles[item.priority].icon"
+                    :size="14"
+                    :stroke-width="1.8"
+                  />
+                  {{ priorityStyles[item.priority].label }}
+                </span>
+                <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+                  Qty {{ item.quantity }}
+                </span>
+              </div>
+            </div>
+
+            <Transition name="accordion">
+              <DisclosurePanel
+                class="space-y-4 rounded-xl border border-border bg-surface-muted/40 px-4 py-4 text-sm text-text-secondary"
+              >
+                <div class="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                  <span
+                    v-if="item.store"
+                    class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 font-semibold"
+                  >
+                    <Store :size="14" :stroke-width="1.8" class="text-text-tertiary" />
+                    {{ item.store }}
+                  </span>
+                  <span
+                    v-if="formatPrice(item)"
+                    class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 font-semibold"
+                  >
+                    <Wallet :size="14" :stroke-width="1.8" class="text-text-tertiary" />
+                    {{ formatPrice(item) }}
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 font-semibold"
+                  >
+                    <Package :size="14" :stroke-width="1.8" class="text-text-tertiary" />
+                    Quantity {{ item.quantity }}
+                  </span>
+                </div>
+
+                <p v-if="item.description" class="text-sm text-text-secondary">
+                  {{ item.description }}
+                </p>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-text-tertiary">
+                  <div class="flex items-center gap-2">
+                    <Clock :size="14" :stroke-width="1.8" />
+                    Updated {{ formatUpdatedAt(item) }}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-text"
+                      @click="editItem(item.id)"
+                    >
+                      <Pencil :size="14" :stroke-width="1.8" />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 rounded-md border border-danger bg-background px-3 py-2 text-xs font-semibold text-danger transition duration-150 ease-soft-snap hover:bg-danger-soft hover:text-danger"
+                      @click="removeItem(item.id)"
+                    >
+                      <Trash2 :size="14" :stroke-width="1.8" />
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </DisclosurePanel>
+            </Transition>
+          </Disclosure>
+        </div>
+
+        <div
+          v-else
+          class="mt-6 space-y-4 rounded-xl border border-dashed border-border bg-surface-muted/40 px-6 py-12 text-center"
+        >
+          <h3 class="text-lg font-semibold text-text">Your wishlist is empty</h3>
+          <p class="text-sm text-text-secondary">
+            Add a few ideas so your family knows exactly what will make your day.
+          </p>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            @click="openAddForm"
+          >
+            Add your first item
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.my-wishlist {
-  max-width: 1000px;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
+.accordion-enter-active,
+.accordion-leave-active {
+  transition: all 0.18s ease;
 }
-
-.add-btn {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 15px;
-}
-
-.add-btn:hover {
-  background: var(--color-primary-hover);
-}
-
-.wishlist-items {
-  display: grid;
-  gap: var(--spacing-lg);
-}
-
-.item-card {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-}
-
-.item-card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.item-card.editing {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  opacity: 0.6;
-}
-
-.item-details {
-  width: 100%;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-md);
-}
-
-.item-header h3 {
-  margin: 0;
-  word-break: break-word;
-  line-height: 1.3;
-  color: var(--color-text);
-  font-size: 18px;
-}
-
-.priority-badge {
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex-shrink: 0;
-  letter-spacing: 0.5px;
-}
-
-.priority-badge.priority-high {
-  background-color: var(--priority-high);
-}
-
-.priority-badge.priority-medium {
-  background-color: var(--priority-medium);
-}
-
-.priority-badge.priority-low {
-  background-color: var(--priority-low);
-}
-
-.item-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.store {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  background: var(--color-surface);
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-}
-
-.item-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-.no-link-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  background: var(--color-background);
-  color: var(--color-text-secondary);
-  border: 1px dashed var(--color-border);
-}
-
-.view-btn {
-  background: var(--color-primary);
-  color: white;
-  text-decoration: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  display: inline-block;
-}
-
-.view-btn:hover {
-  background: var(--color-primary-hover);
-  text-decoration: none;
-}
-
-.edit-btn {
-  background: var(--color-warning);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.edit-btn:hover {
-  background: #e64a19;
-}
-
-.remove-btn {
-  background: transparent;
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.remove-btn:hover {
-  background: var(--color-error);
-  color: white;
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  color: var(--color-text-secondary);
-}
-
-.empty-state h3 {
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-text);
-}
-
-.empty-state p {
-  margin-bottom: var(--spacing-lg);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .item-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .priority-badge {
-    align-self: flex-start;
-  }
-
-  .item-actions > * {
-    flex: 1;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .item-header h3 {
-    font-size: 16px;
-  }
-
-  .item-actions {
-    flex-direction: column;
-  }
-
-  .item-actions > * {
-    width: 100%;
-  }
+.accordion-enter-from,
+.accordion-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

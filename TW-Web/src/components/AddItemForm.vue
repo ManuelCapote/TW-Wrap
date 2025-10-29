@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { WishListItem, ProductPreview } from '@/types'
 import { parseProductUrl, isValidProductUrl } from '@/utils/urlParser'
 import { CheckCircle, MapPin } from 'lucide-vue-next'
@@ -29,71 +29,29 @@ const formData = ref({
 
 const trimmedUrl = computed(() => urlInput.value.trim())
 
-const canParseUrl = computed(() => {
-  return trimmedUrl.value && isValidProductUrl(trimmedUrl.value)
-})
-
-const hasInvalidUrl = computed(() => {
-  return Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value)
-})
-
-const canSave = computed(() => {
-  return formData.value.title.trim() && 
-         formData.value.quantity > 0
-})
+const canParseUrl = computed(() => trimmedUrl.value && isValidProductUrl(trimmedUrl.value))
+const hasInvalidUrl = computed(() => Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value))
+const canSave = computed(() => formData.value.title.trim() && formData.value.quantity > 0)
 
 const parseUrl = async () => {
   if (!canParseUrl.value) return
-  
+
   isLoading.value = true
   error.value = ''
   productPreview.value = null
-  
+
   try {
     const preview = await parseProductUrl(trimmedUrl.value)
     productPreview.value = preview
     lastParsedUrl.value = trimmedUrl.value
-    
-    // Auto-fill form with parsed data (only name and store)
+
     formData.value.title = preview.title
     formData.value.store = preview.store || ''
-    // Leave other fields as user-entered values
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to parse URL'
-    // Keep any manually entered data
   } finally {
     isLoading.value = false
   }
-}
-
-const handleSave = () => {
-  if (!canSave.value) return
-  
-  const url = trimmedUrl.value
-  const validUrl = url && isValidProductUrl(url) ? url : undefined
-  const description = formData.value.description.trim()
-  const store = formData.value.store.trim()
-
-  const newItem = {
-    title: formData.value.title.trim(),
-    description: description || undefined,
-    url: validUrl,
-    imageUrl: productPreview.value?.imageUrl,
-    price: formData.value.price || undefined,
-    currency: formData.value.currency || undefined,
-    store: store || undefined,
-    quantity: formData.value.quantity,
-    priority: formData.value.priority,
-    isPurchased: false
-  }
-  
-  emit('save', newItem)
-  resetForm()
-}
-
-const handleCancel = () => {
-  emit('cancel')
-  resetForm()
 }
 
 const resetForm = () => {
@@ -112,7 +70,37 @@ const resetForm = () => {
   }
 }
 
-watch(trimmedUrl, (currentUrl) => {
+const handleSave = () => {
+  if (!canSave.value) return
+
+  const url = trimmedUrl.value
+  const validUrl = url && isValidProductUrl(url) ? url : undefined
+  const description = formData.value.description.trim()
+  const store = formData.value.store.trim()
+
+  const newItem = {
+    title: formData.value.title.trim(),
+    description: description || undefined,
+    url: validUrl,
+    imageUrl: productPreview.value?.imageUrl,
+    price: formData.value.price || undefined,
+    currency: formData.value.currency || undefined,
+    store: store || undefined,
+    quantity: formData.value.quantity,
+    priority: formData.value.priority,
+    isPurchased: false
+  }
+
+  emit('save', newItem)
+  resetForm()
+}
+
+const handleCancel = () => {
+  emit('cancel')
+  resetForm()
+}
+
+watch(trimmedUrl, currentUrl => {
   if (!currentUrl) {
     error.value = ''
   }
@@ -124,483 +112,198 @@ watch(trimmedUrl, (currentUrl) => {
 </script>
 
 <template>
-  <div class="add-form">
-    <h3>Add New Item to Wishlist</h3>
-    
-    <!-- URL Input Section -->
-    <div class="url-section">
-      <div class="form-group">
-        <label for="url">Product Link (optional)</label>
-        <p class="field-hint">
-          Paste a link to auto-fill the details, or leave this blank to save the item manually.
-        </p>
-        <div class="url-input-group">
-          <input
-            id="url"
-            v-model="urlInput"
-            type="url"
-            placeholder="Paste product link from any store..."
-            class="url-input"
-            @keyup.enter="parseUrl"
-          />
-          <button 
-            type="button"
-            @click="parseUrl" 
-            :disabled="!canParseUrl || isLoading"
-            class="parse-btn"
-          >
-            {{ isLoading ? 'Parsing...' : 'Parse' }}
-          </button>
-        </div>
-        <p v-if="hasInvalidUrl" class="invalid-url-hint">
-          This link doesn't look valid. We'll save the item without it, or paste the full URL (including https://) to enable parsing.
+  <div class="rounded-2xl border border-border bg-surface px-6 py-6 shadow-md shadow-black/20 md:px-8 md:py-8">
+    <div class="flex flex-wrap items-start justify-between gap-6">
+      <div class="space-y-2">
+        <h3 class="text-xl font-semibold tracking-tight text-text">Add new item</h3>
+        <p class="text-sm text-text-secondary">
+          Paste a product link to auto-fill details or add the essentials manually.
         </p>
       </div>
-      
-      <div v-if="error" class="error-message">
-        {{ error }}
-      </div>
-      
-      <!-- Loading State -->
-      <div v-if="isLoading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <span>Extracting product information...</span>
-      </div>
+      <button
+        type="button"
+        class="rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
+        @click="handleCancel"
+      >
+        Cancel
+      </button>
     </div>
 
-    <!-- Product Preview -->
-    <div v-if="productPreview" class="product-preview">
-      <h4>
-        <CheckCircle :size="16" :stroke-width="2" class="success-icon" />
-        Successfully Parsed
-      </h4>
-      <div class="preview-content">
-        <div class="preview-details">
-          <h5>{{ productPreview.title }}</h5>
-          <div class="preview-meta">
-            <span v-if="productPreview.store" class="preview-store">
-              <MapPin :size="14" :stroke-width="2" class="store-icon" />
-              {{ productPreview.store }}
-            </span>
-            <span class="extracted-note">Name and store extracted from URL</span>
+    <form class="mt-6 space-y-6" @submit.prevent="handleSave">
+      <fieldset class="space-y-4 rounded-xl border border-border bg-surface-muted/40 px-4 py-4">
+        <legend class="px-2 text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
+          Optional link
+        </legend>
+
+        <div class="space-y-2">
+          <label for="url" class="text-sm font-semibold text-text">Product link</label>
+          <p class="text-xs text-text-secondary">
+            Paste a store link to pull the name and store automatically.
+          </p>
+          <div class="flex flex-col gap-3 md:flex-row">
+            <input
+              id="url"
+              v-model="urlInput"
+              type="url"
+              placeholder="https://example.com/your-item"
+              :class="[
+                'flex-1 rounded-md border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40',
+                hasInvalidUrl ? 'border-danger focus:ring-danger/40' : 'border-border',
+                isLoading ? 'opacity-70' : ''
+              ]"
+              @keyup.enter="parseUrl"
+            />
+            <button
+              type="button"
+              class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+              :disabled="!canParseUrl || isLoading"
+              @click="parseUrl"
+            >
+              {{ isLoading ? 'Parsing…' : 'Parse link' }}
+            </button>
+          </div>
+          <p v-if="hasInvalidUrl" class="text-xs text-danger">
+            This link doesn’t look valid. We’ll save the item without it, or add the full URL (including https://).
+          </p>
+        </div>
+
+        <div v-if="error" class="rounded-lg border border-danger-soft bg-danger-soft px-3 py-2 text-xs text-danger">
+          {{ error }}
+        </div>
+
+        <div v-if="isLoading" class="flex items-center gap-2 text-xs text-text-secondary">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
+          Extracting product information…
+        </div>
+
+        <div
+          v-if="productPreview"
+          class="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-text"
+        >
+          <div>
+            <div class="flex items-center gap-2">
+              <CheckCircle :size="16" :stroke-width="2" class="text-success" />
+              <p class="font-semibold">{{ productPreview.title }}</p>
+            </div>
+            <div class="mt-1 flex items-center gap-2 text-xs text-text-secondary">
+              <span v-if="productPreview.store" class="inline-flex items-center gap-1">
+                <MapPin :size="12" :stroke-width="2" />
+                {{ productPreview.store }}
+              </span>
+              <span class="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-widest text-text-tertiary">
+                Name and store extracted
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </fieldset>
 
-    <!-- Editable Form -->
-    <form @submit.prevent="handleSave" class="item-form">
-      <div class="form-group">
-        <label for="title">Name *</label>
-        <input
-          id="title"
-          v-model="formData.title"
-          type="text"
-          placeholder="Product name"
-          class="form-input"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea
-          id="description"
-          v-model="formData.description"
-          placeholder="Optional description"
-          class="form-textarea"
-          rows="2"
-        ></textarea>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="price">Price</label>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-2">
+          <label for="title" class="text-sm font-semibold text-text">Name *</label>
           <input
-            id="price"
-            v-model.number="formData.price"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            class="form-input"
+            id="title"
+            v-model="formData.title"
+            type="text"
+            placeholder="Product name"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+            required
           />
         </div>
-        
-        <div class="form-group">
-          <label for="currency">Currency</label>
-          <select id="currency" v-model="formData.currency" class="form-select">
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="CAD">CAD</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="store">Store</label>
+        <div class="space-y-2">
+          <label for="store" class="text-sm font-semibold text-text">Store</label>
           <input
             id="store"
             v-model="formData.store"
             type="text"
-            placeholder="e.g. Amazon, Target"
-            class="form-input"
+            placeholder="Amazon, Target…"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
           />
         </div>
-        
-        <div class="form-group">
-          <label for="quantity">Quantity</label>
+      </div>
+
+      <div class="space-y-2">
+        <label for="description" class="text-sm font-semibold text-text">Notes</label>
+        <textarea
+          id="description"
+          v-model="formData.description"
+          rows="3"
+          placeholder="Share size, color, or context that helps someone pick the perfect version."
+          class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+        ></textarea>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-3">
+        <div class="space-y-2">
+          <label for="quantity" class="text-sm font-semibold text-text">Quantity *</label>
           <input
             id="quantity"
             v-model.number="formData.quantity"
-            type="number"
             min="1"
-            class="form-input"
+            type="number"
+            placeholder="1"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+            required
           />
+        </div>
+        <div class="space-y-2">
+          <label for="price" class="text-sm font-semibold text-text">Price</label>
+          <div class="flex gap-2">
+            <input
+              id="price"
+              v-model.number="formData.price"
+              min="0"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+            />
+            <select
+              v-model="formData.currency"
+              class="rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+            >
+              <option value="USD">USD</option>
+              <option value="CAD">CAD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label for="priority" class="text-sm font-semibold text-text">Priority</label>
+          <select
+            id="priority"
+            v-model="formData.priority"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="priority">Priority</label>
-        <select id="priority" v-model="formData.priority" class="form-select">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" :disabled="!canSave" class="save-btn">
-          Add to Wishlist
-        </button>
-        <button type="button" @click="handleCancel" class="cancel-btn">
-          Cancel
-        </button>
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-text-tertiary">
+        <p>
+          These items are stored locally for now. When the API is ready, we’ll sync everything automatically.
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="submit"
+            class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+            :disabled="!canSave"
+          >
+            Save item
+          </button>
+          <button
+            type="button"
+            class="rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
+            @click="handleCancel"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </form>
   </div>
 </template>
-
-<style scoped>
-.add-form {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-}
-
-.add-form h3 {
-  margin: 0 0 var(--spacing-lg) 0;
-  color: var(--color-text);
-}
-
-.url-section {
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.form-group {
-  margin-bottom: var(--spacing-md);
-}
-
-.field-hint {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.url-input-group {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.url-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  background: var(--color-background);
-  color: var(--color-text);
-  transition: border-color 0.2s ease;
-}
-
-.url-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.parse-btn {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.2s ease;
-}
-
-.parse-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.parse-btn:disabled {
-  background: var(--color-border);
-  color: var(--color-text-secondary);
-  cursor: not-allowed;
-}
-
-.invalid-url-hint {
-  margin-top: var(--spacing-sm);
-  font-size: 13px;
-  color: #e74c3c;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  margin-top: var(--spacing-md);
-}
-
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-border);
-  border-top: 2px solid var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.product-preview {
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-md);
-  background: #e8f5e9;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--color-success);
-}
-
-.product-preview h4 {
-  margin: 0 0 var(--spacing-md) 0;
-  color: var(--color-success);
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.success-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.preview-content {
-  display: flex;
-  gap: var(--spacing-md);
-}
-
-.preview-details {
-  flex: 1;
-}
-
-.preview-details h5 {
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--color-text);
-  font-size: 15px;
-}
-
-.preview-details p {
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-.preview-meta {
-  display: flex;
-  gap: var(--spacing-md);
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.preview-store {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.store-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.extracted-note {
-  color: var(--color-success);
-  font-size: 12px;
-  font-weight: 600;
-  background: #e8f5e9;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-}
-
-.item-form {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--spacing-lg);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: var(--spacing-sm);
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: 14px;
-}
-
-.form-input,
-.form-textarea,
-.form-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  background: var(--color-background);
-  color: var(--color-text);
-  transition: border-color 0.2s ease;
-}
-
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.error-message {
-  color: var(--color-error);
-  font-size: 13px;
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  background: var(--color-error-bg);
-  border-radius: var(--radius-sm);
-}
-
-.form-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-}
-
-.save-btn {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 15px;
-}
-
-.save-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.save-btn:disabled {
-  background: var(--color-border);
-  color: var(--color-text-secondary);
-  cursor: not-allowed;
-}
-
-.cancel-btn {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 15px;
-}
-
-.cancel-btn:hover {
-  background: var(--color-surface);
-  color: var(--color-text);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .add-form {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .url-input-group {
-    flex-direction: column;
-  }
-
-  .url-input {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  .parse-btn {
-    width: 100%;
-  }
-
-  .form-input,
-  .form-textarea,
-  .form-select {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .save-btn,
-  .cancel-btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .add-form h3 {
-    font-size: 1.1rem;
-  }
-}
-</style>

@@ -55,278 +55,95 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="family-info-card">
-    <div v-if="familyStore.isLoading" class="loading">
-      Loading family info...
+  <div class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+    <div v-if="familyStore.isLoading" class="space-y-4">
+      <div class="h-4 w-24 animate-pulse rounded bg-surface-muted/60" />
+      <div class="h-6 w-48 animate-pulse rounded bg-surface-muted/60" />
+      <div class="h-10 w-full animate-pulse rounded bg-surface-muted/60" />
     </div>
 
-    <div v-else-if="!family" class="empty">
-      <p>No family information available</p>
+    <div
+      v-else-if="!family"
+      class="rounded-xl border border-dashed border-border bg-background px-4 py-6 text-center text-sm text-text-secondary"
+    >
+      No family information available yet.
     </div>
 
-    <div v-else class="info-content">
-      <div class="info-header">
-        <div class="family-icon">
-          <Users :size="48" :stroke-width="1.5" />
+    <div v-else class="space-y-5">
+      <header class="flex flex-wrap items-start gap-4">
+        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <Users :size="28" :stroke-width="1.8" />
         </div>
-        <div class="family-details">
-          <div v-if="!isEditing" class="family-name-display">
-            <h2 class="family-name">{{ family.name }}</h2>
-            <button
-              v-if="familyStore.isAdmin"
-              @click="startEdit"
-              class="btn-edit"
-              title="Edit family name"
-            >
-              <Pencil :size="18" :stroke-width="2" />
-            </button>
-          </div>
-
-          <div v-else class="family-name-edit">
-            <input
-              v-model="editedName"
-              type="text"
-              class="name-input"
-              placeholder="Enter family name"
-              @keyup.enter="saveEdit"
-              @keyup.esc="cancelEdit"
-              autofocus
-            />
-            <div class="edit-actions">
+        <div class="flex-1 space-y-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <template v-if="!isEditing">
+              <h2 class="text-2xl font-semibold tracking-tight text-text">
+                {{ family.name }}
+              </h2>
               <button
-                @click="saveEdit"
-                :disabled="isSaving"
-                class="btn-save"
+                v-if="familyStore.isAdmin"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary"
+                @click="startEdit"
               >
-                <Check v-if="!isSaving" :size="18" :stroke-width="2.5" />
-                <span v-else>...</span>
+                <Pencil :size="14" :stroke-width="1.8" />
+                Rename
+              </button>
+            </template>
+            <div v-else class="flex flex-1 items-center gap-3">
+              <input
+                v-model="editedName"
+                type="text"
+                class="flex-1 rounded-md border border-primary bg-background px-3 py-2 text-sm font-semibold text-text outline-none transition focus:border-primary-hover focus:ring-2 focus:ring-primary/40"
+                placeholder="Enter family name"
+                @keyup.enter="saveEdit"
+                @keyup.esc="cancelEdit"
+                autofocus
+              />
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-success text-white transition duration-150 ease-soft-snap hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="isSaving"
+                @click="saveEdit"
+              >
+                <Check v-if="!isSaving" :size="16" :stroke-width="2" />
+                <span v-else class="text-xs font-semibold">...</span>
               </button>
               <button
-                @click="cancelEdit"
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-text-secondary transition duration-150 ease-soft-snap hover:border-danger hover:text-danger disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isSaving"
-                class="btn-cancel"
+                @click="cancelEdit"
               >
-                <X :size="18" :stroke-width="2.5" />
+                <X :size="16" :stroke-width="2" />
               </button>
             </div>
           </div>
 
-          <div class="family-meta">
-            <span class="meta-item">
-              <Users :size="16" :stroke-width="2" class="meta-icon" />
-              <span class="meta-text">{{ memberCount }} member{{ memberCount !== 1 ? 's' : '' }}</span>
+          <div class="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 font-semibold"
+            >
+              <Users :size="14" :stroke-width="1.8" class="text-text-tertiary" />
+              {{ memberCount }} member{{ memberCount !== 1 ? 's' : '' }}
             </span>
-            <span class="meta-item">
-              <Calendar :size="16" :stroke-width="2" class="meta-icon" />
-              <span class="meta-text">Created {{ formatDate(family.createdAt) }}</span>
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 font-semibold"
+            >
+              <Calendar :size="14" :stroke-width="1.8" class="text-text-tertiary" />
+              Created {{ formatDate(family.createdAt) }}
             </span>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div class="info-footer" v-if="familyStore.isAdmin">
-        <div class="admin-badge">
-          <Crown :size="18" :stroke-width="2" class="badge-icon" />
-          <span class="badge-text">You are an Admin of this family</span>
-        </div>
-      </div>
+      <footer
+        v-if="familyStore.isAdmin"
+        class="flex items-center gap-3 rounded-xl border border-primary/50 bg-primary-soft/30 px-4 py-3 text-xs font-semibold text-primary"
+      >
+        <Crown :size="16" :stroke-width="1.8" />
+        You are an admin of this family. You can rename the family, invite members, and manage access.
+      </footer>
     </div>
   </div>
 </template>
-
-<style scoped>
-.family-info-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.loading,
-.empty {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-secondary);
-}
-
-.info-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info-header {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
-}
-
-.family-icon {
-  flex-shrink: 0;
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.family-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.family-name-display {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.family-name {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.btn-edit {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.375rem;
-  border-radius: 6px;
-  color: var(--color-text-secondary);
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-edit:hover {
-  color: var(--color-text);
-  background: var(--color-surface-muted);
-}
-
-.family-name-edit {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.name-input {
-  flex: 1;
-  padding: 0.625rem 1rem;
-  border: 2px solid var(--color-primary);
-  border-radius: 8px;
-  background: var(--color-background);
-  color: var(--color-text);
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.name-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.edit-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-save,
-.btn-cancel {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-save {
-  background: var(--color-success);
-  color: white;
-}
-
-.btn-save:hover:not(:disabled) {
-  background: #059669;
-}
-
-.btn-save:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  background: var(--color-surface-muted);
-  color: var(--color-text-secondary);
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background: var(--color-border);
-  color: var(--color-text);
-}
-
-.family-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.meta-icon {
-  display: flex;
-  align-items: center;
-  color: var(--color-text-tertiary);
-}
-
-.info-footer {
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.admin-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  background: var(--color-warning);
-  color: #78350f;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.badge-icon {
-  display: flex;
-  align-items: center;
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-  .info-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .family-name {
-    font-size: 1.5rem;
-  }
-
-  .family-meta {
-    justify-content: center;
-  }
-}
-</style>

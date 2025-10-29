@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { generateAvatarDataUri } from '@/utils/avatar'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const isDev = import.meta.env.DEV
+
+const userAvatarUri = computed(() => {
+  const seed = authStore.user?.email || authStore.user?.name || 'user'
+  return generateAvatarDataUri(seed)
+})
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -28,7 +35,9 @@ const handleLogout = async () => {
         </nav>
 
         <div class="user-section">
-          <div class="user-avatar">{{ authStore.userAvatar }}</div>
+          <div class="user-avatar">
+            <img :src="userAvatarUri" alt="User avatar" />
+          </div>
           <button @click="handleLogout" class="logout-btn">Logout</button>
         </div>
       </div>
@@ -111,14 +120,18 @@ const handleLogout = async () => {
 .user-avatar {
   width: 36px;
   height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary);
-  color: white;
+  overflow: hidden;
+  background: var(--color-primary-soft);
   border-radius: 50%;
   font-weight: 600;
   font-size: 1rem;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .logout-btn {

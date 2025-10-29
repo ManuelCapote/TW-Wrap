@@ -15,11 +15,9 @@ const handleJoinSuccess = async () => {
   showJoinModal.value = false
   successMessage.value = 'Successfully joined new family!'
 
-  // Refresh family data
   await familyStore.fetchFamilyMembers()
   await familyStore.fetchFamily()
 
-  // Clear success message after 5 seconds
   setTimeout(() => {
     successMessage.value = null
   }, 5000)
@@ -27,96 +25,92 @@ const handleJoinSuccess = async () => {
 </script>
 
 <template>
-  <div class="settings-view">
-    <div class="settings-header">
-      <h1 class="page-title">Family Settings</h1>
-      <p class="page-description">
-        Manage your family, invite new members, and configure settings
-      </p>
-    </div>
-
-    <div class="settings-content">
-      <!-- Family Info Section -->
-      <section class="settings-section">
-        <div class="section-header">
-          <h2 class="section-title">Family Information</h2>
-          <p class="section-description">View and edit your family details</p>
+  <div class="min-h-screen bg-background text-text">
+    <div class="mx-auto max-w-5xl space-y-12 px-6 py-16 md:px-8 md:py-20">
+      <header class="space-y-4">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
+          Settings
+        </p>
+        <div class="space-y-3">
+          <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">
+            Manage your family workspace
+          </h1>
+          <p class="max-w-2xl text-base text-text-secondary md:text-lg">
+            Update family details, curate members, and share invite codes with the people you trust.
+          </p>
         </div>
+      </header>
+
+      <section class="space-y-6">
         <FamilyInfoCard />
-      </section>
 
-      <!-- Members Section -->
-      <section class="settings-section">
-        <div class="section-header">
-          <h2 class="section-title">Family Members</h2>
-          <p class="section-description">
-            View and manage who has access to your family wishlists
-          </p>
-        </div>
         <MemberManagement />
-      </section>
 
-      <!-- Invite Codes Section (Admin Only) -->
-      <section v-if="familyStore.isAdmin" class="settings-section">
-        <div class="section-header">
-          <div class="section-title-row">
-            <h2 class="section-title">Invite Codes</h2>
-            <span class="admin-badge-small">Admin Only</span>
-          </div>
-          <p class="section-description">
-            Generate invite codes to add new members to your family
-          </p>
-        </div>
-        <InviteCodeManager />
-      </section>
+        <InviteCodeManager v-if="familyStore.isAdmin" />
 
-      <!-- Member Info (Non-Admin) -->
-      <section v-else class="settings-section info-section">
-        <div class="info-card">
-          <div class="info-icon">
-            <Info :size="24" :stroke-width="2" />
+        <div
+          v-else
+          class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20"
+        >
+          <div class="flex items-start gap-3">
+            <div class="rounded-full bg-primary-soft p-2 text-primary">
+              <Info :size="16" :stroke-width="1.8" />
+            </div>
+            <div class="space-y-2 text-sm text-text-secondary">
+              <h2 class="text-base font-semibold text-text">Member account</h2>
+              <p>
+                You’re a member of this family. Reach out to an admin if you’d like to invite someone or adjust family details.
+              </p>
+            </div>
           </div>
-          <div class="info-content">
-            <h3 class="info-title">Member Account</h3>
-            <p class="info-text">
-              You are a member of this family. Contact a family admin to invite new members
-              or make changes to family settings.
-            </p>
-          </div>
-        </div>
 
-        <!-- Join Another Family Button -->
-        <div class="join-family-section">
-          <button @click="showJoinModal = true" class="btn-join-family">
-            <Ticket :size="20" :stroke-width="2" class="btn-icon" />
-            <span class="btn-text">Join Another Family</span>
-          </button>
-          <p class="join-hint">
-            Have an invite code? Join a different family here
-          </p>
+          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-4">
+            <div class="space-y-1 text-sm text-text-secondary">
+              <p class="text-text font-semibold">Have an invite code?</p>
+              <p class="text-xs">
+                Use it to join another family workspace. You’ll keep all of your wishlist items.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover"
+              @click="showJoinModal = true"
+            >
+              <Ticket :size="18" :stroke-width="1.8" />
+              Join another family
+            </button>
+          </div>
         </div>
       </section>
 
-      <!-- Success Message -->
-      <div v-if="successMessage" class="success-message">
-        <CheckCircle :size="20" :stroke-width="2" class="success-icon" />
-        <span class="success-text">{{ successMessage }}</span>
-        <button @click="successMessage = null" class="success-dismiss">
-          <X :size="18" :stroke-width="2" />
+      <div v-if="successMessage" class="flex items-center gap-3 rounded-xl border border-success bg-success-soft/40 px-4 py-3 text-sm font-semibold text-success">
+        <CheckCircle :size="18" :stroke-width="1.8" />
+        <span class="flex-1">{{ successMessage }}</span>
+        <button
+          type="button"
+          class="rounded-md border border-success/40 bg-background px-2 py-1 text-xs text-success transition duration-150 ease-soft-snap hover:bg-success/10"
+          @click="successMessage = null"
+        >
+          Dismiss
         </button>
       </div>
 
-      <!-- Error Display -->
-      <div v-if="familyStore.error" class="error-message">
-        <AlertTriangle :size="20" :stroke-width="2" class="error-icon" />
-        <span class="error-text">{{ familyStore.error }}</span>
-        <button @click="familyStore.clearError()" class="error-dismiss">
-          <X :size="18" :stroke-width="2" />
+      <div
+        v-if="familyStore.error"
+        class="flex items-center gap-3 rounded-xl border border-danger bg-danger-soft/40 px-4 py-3 text-sm font-semibold text-danger"
+      >
+        <AlertTriangle :size="18" :stroke-width="1.8" />
+        <span class="flex-1">{{ familyStore.error }}</span>
+        <button
+          type="button"
+          class="rounded-md border border-danger/40 bg-background px-2 py-1 text-xs text-danger transition duration-150 ease-soft-snap hover:bg-danger/10"
+          @click="familyStore.clearError()"
+        >
+          <X :size="14" :stroke-width="1.8" />
         </button>
       </div>
     </div>
 
-    <!-- Join Family Modal -->
     <JoinFamilyModal
       :is-open="showJoinModal"
       :current-family-name="familyStore.familyName"
@@ -125,265 +119,3 @@ const handleJoinSuccess = async () => {
     />
   </div>
 </template>
-
-<style scoped>
-.settings-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.settings-header {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 0.5rem;
-}
-
-.page-description {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.settings-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-}
-
-.settings-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.section-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.section-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.section-description {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.admin-badge-small {
-  font-size: 0.625rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #78350f;
-  padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Info Section (for non-admins) */
-.info-section {
-  margin-top: 1rem;
-}
-
-.info-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-}
-
-.info-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  color: var(--color-primary);
-}
-
-.info-content {
-  flex: 1;
-}
-
-.info-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 0.5rem;
-}
-
-.info-text {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Error Message */
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid var(--color-danger);
-  border-radius: 12px;
-  color: var(--color-danger);
-}
-
-.error-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-.error-text {
-  flex: 1;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.error-dismiss {
-  background: transparent;
-  border: none;
-  color: var(--color-danger);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-.error-dismiss:hover {
-  opacity: 1;
-}
-
-/* Join Family Section */
-.join-family-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-
-.btn-join-family {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-join-family:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-}
-
-.btn-text {
-  font-size: inherit;
-}
-
-.join-hint {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-/* Success Message */
-.success-message {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid #10b981;
-  border-radius: 12px;
-  color: #10b981;
-}
-
-.success-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-.success-text {
-  flex: 1;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.success-dismiss {
-  background: transparent;
-  border: none;
-  color: #10b981;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-.success-dismiss:hover {
-  opacity: 1;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .settings-view {
-    padding: 1rem;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-
-  .section-title {
-    font-size: 1.25rem;
-  }
-
-  .settings-content {
-    gap: 2rem;
-  }
-
-  .btn-join-family {
-    width: 100%;
-    justify-content: center;
-  }
-}
-</style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { WishListItem } from '@/types'
 import { isValidProductUrl } from '@/utils/urlParser'
 
@@ -25,18 +25,12 @@ const formData = ref({
 const errors = ref<Record<string, string>>({})
 
 const trimmedUrl = computed(() => formData.value.url.trim())
-
-const hasInvalidUrl = computed(() => {
-  return Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value)
-})
-
-const isValid = computed(() => {
-  return formData.value.title.trim() && formData.value.quantity > 0 && !hasInvalidUrl.value
-})
+const hasInvalidUrl = computed(() => Boolean(trimmedUrl.value) && !isValidProductUrl(trimmedUrl.value))
+const isValid = computed(() => formData.value.title.trim() && formData.value.quantity > 0 && !hasInvalidUrl.value)
 
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!formData.value.title.trim()) {
     errors.value.title = 'Name is required'
   }
@@ -44,17 +38,17 @@ const validateForm = () => {
   if (hasInvalidUrl.value) {
     errors.value.url = 'Please enter a valid URL or leave this blank'
   }
-  
+
   if (formData.value.quantity <= 0) {
     errors.value.quantity = 'Quantity must be greater than 0'
   }
-  
+
   return Object.keys(errors.value).length === 0
 }
 
 const handleSave = () => {
   if (!validateForm()) return
-  
+
   const updatedItem: WishListItem = {
     ...props.item,
     title: formData.value.title.trim(),
@@ -63,7 +57,7 @@ const handleSave = () => {
     priority: formData.value.priority,
     updatedAt: new Date()
   }
-  
+
   emit('save', updatedItem)
 }
 
@@ -73,57 +67,89 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <div class="edit-form">
-    <h3>Edit Wishlist Item</h3>
-    
-    <form @submit.prevent="handleSave">
-      <div class="form-group">
-        <label for="title">Name *</label>
-        <input
-          id="title"
-          v-model="formData.title"
-          type="text"
-          placeholder="Item name"
-          class="form-input"
-          :class="{ error: errors.title }"
-        />
-        <span v-if="errors.title" class="error-message">{{ errors.title }}</span>
-      </div>
-
-      <div class="form-group">
-        <label for="url">Product Link</label>
-        <p class="field-hint">
-          Paste a store link to help your family get straight to the product. Leave blank to remove it.
+  <div class="rounded-2xl border border-border bg-surface px-6 py-6 shadow-md shadow-black/20 md:px-8 md:py-8">
+    <div class="flex items-start justify-between gap-6">
+      <div class="space-y-2">
+        <h3 class="text-xl font-semibold tracking-tight text-text">Edit item</h3>
+        <p class="text-sm text-text-secondary">
+          Update details or remove the product link if you no longer need it.
         </p>
-        <input
-          id="url"
-          v-model="formData.url"
-          type="url"
-          placeholder="https://example.com/your-item"
-          class="form-input"
-          :class="{ error: errors.url }"
-        />
-        <span v-if="errors.url" class="error-message">{{ errors.url }}</span>
+      </div>
+      <button
+        type="button"
+        class="rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
+        @click="handleCancel"
+      >
+        Close
+      </button>
+    </div>
+
+    <form class="mt-6 space-y-6" @submit.prevent="handleSave">
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-2">
+          <label for="edit-title" class="text-sm font-semibold text-text">Name *</label>
+          <input
+            id="edit-title"
+            v-model="formData.title"
+            type="text"
+            placeholder="Item name"
+            :class="[
+              'w-full rounded-md border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40',
+              errors.title ? 'border-danger focus:ring-danger/40' : 'border-border'
+            ]"
+          />
+          <p v-if="errors.title" class="text-xs text-danger">
+            {{ errors.title }}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="edit-url" class="text-sm font-semibold text-text">Product link</label>
+          <p class="text-xs text-text-secondary">
+            Paste a store link to make it easy for others to jump straight to the product.
+          </p>
+          <input
+            id="edit-url"
+            v-model="formData.url"
+            type="url"
+            placeholder="https://example.com/your-item"
+            :class="[
+              'w-full rounded-md border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40',
+              errors.url ? 'border-danger focus:ring-danger/40' : 'border-border'
+            ]"
+          />
+          <p v-if="errors.url" class="text-xs text-danger">
+            {{ errors.url }}
+          </p>
+        </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="quantity">Quantity *</label>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-2">
+          <label for="edit-quantity" class="text-sm font-semibold text-text">Quantity *</label>
           <input
-            id="quantity"
+            id="edit-quantity"
             v-model.number="formData.quantity"
             type="number"
             min="1"
             placeholder="1"
-            class="form-input"
-            :class="{ error: errors.quantity }"
+            :class="[
+              'w-full rounded-md border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40',
+              errors.quantity ? 'border-danger focus:ring-danger/40' : 'border-border'
+            ]"
           />
-          <span v-if="errors.quantity" class="error-message">{{ errors.quantity }}</span>
+          <p v-if="errors.quantity" class="text-xs text-danger">
+            {{ errors.quantity }}
+          </p>
         </div>
 
-        <div class="form-group">
-          <label for="priority">Importance</label>
-          <select id="priority" v-model="formData.priority" class="form-select">
+        <div class="space-y-2">
+          <label for="edit-priority" class="text-sm font-semibold text-text">Importance</label>
+          <select
+            id="edit-priority"
+            v-model="formData.priority"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
+          >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
@@ -131,194 +157,22 @@ const handleCancel = () => {
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" :disabled="!isValid" class="save-btn">
-          Save Changes
-        </button>
-        <button type="button" @click="handleCancel" class="cancel-btn">
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+        <button
+          type="button"
+          class="rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
+          @click="handleCancel"
+        >
           Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+          :disabled="!isValid"
+        >
+          Save changes
         </button>
       </div>
     </form>
   </div>
 </template>
-
-<style scoped>
-.edit-form {
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.edit-form h3 {
-  margin: 0 0 1.5rem 0;
-  color: var(--color-heading);
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.field-hint {
-  margin: 4px 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--color-heading);
-}
-
-.form-input,
-.form-textarea,
-.form-select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  background: var(--color-background);
-  color: var(--color-text);
-  transition: border-color 0.3s ease;
-}
-
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
-  outline: none;
-  border-color: hsla(160, 100%, 37%, 1);
-}
-
-.form-input.error,
-.form-textarea.error,
-.form-select.error {
-  border-color: #e74c3c;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.error-message {
-  display: block;
-  color: #e74c3c;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.save-btn {
-  background: hsla(160, 100%, 37%, 1);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.25rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.save-btn:hover:not(:disabled) {
-  background: hsla(160, 100%, 32%, 1);
-}
-
-.save-btn:disabled {
-  background: var(--color-border);
-  color: var(--color-text);
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.cancel-btn {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.cancel-btn:hover {
-  background: var(--color-background-mute);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .edit-form {
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .edit-form h3 {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .form-input,
-  .form-textarea,
-  .form-select {
-    padding: 0.875rem;
-    font-size: 1rem; /* Prevents zoom on iOS */
-  }
-  
-  .form-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
-  
-  .save-btn,
-  .cancel-btn {
-    padding: 0.875rem 1.5rem;
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .edit-form {
-    padding: 0.75rem;
-  }
-  
-  .edit-form h3 {
-    font-size: 1rem;
-  }
-  
-  .form-group label {
-    font-size: 0.9rem;
-    margin-bottom: 0.4rem;
-  }
-  
-  .form-row {
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .form-actions {
-    margin-top: 1rem;
-  }
-}
-</style>

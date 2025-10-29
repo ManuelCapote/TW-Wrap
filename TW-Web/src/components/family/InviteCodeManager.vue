@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot
+} from '@headlessui/vue'
 import { useFamilyStore } from '@/stores/family'
 import { Check, Clipboard, Sparkles } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
 
-// Form state
 const expiresInDays = ref(7)
 const maxUses = ref(10)
 const isCreating = ref(false)
 
-// Modal state
 const showNewCodeModal = ref(false)
 const newlyCreatedCode = ref('')
 const copiedCode = ref('')
 
-// Computed
 const activeInvites = computed(() => familyStore.invites)
 const hasInvites = computed(() => activeInvites.value.length > 0)
 
-// Actions
 const handleCreateInvite = async () => {
   try {
     isCreating.value = true
@@ -70,16 +73,14 @@ const formatDate = (date: Date) => {
   })
 }
 
-const isExpired = (date: Date) => {
-  return new Date(date) < new Date()
-}
+const isExpired = (date: Date) => new Date(date) < new Date()
 
-const getUsageStatus = (currentUses: number, maxUses: number) => {
+const usageStatusClass = (currentUses: number, maxUses: number) => {
   const percentage = (currentUses / maxUses) * 100
-  if (percentage >= 100) return 'full'
-  if (percentage >= 75) return 'high'
-  if (percentage >= 50) return 'medium'
-  return 'low'
+  if (percentage >= 100) return 'text-danger'
+  if (percentage >= 75) return 'text-warning'
+  if (percentage >= 50) return 'text-primary'
+  return 'text-text-secondary'
 }
 
 const closeModal = () => {
@@ -93,578 +94,209 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="invite-manager">
-    <!-- Create Invite Section -->
-    <div class="create-section">
-      <h3>Create New Invite Code</h3>
-      <div class="create-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="expires">Expires In (days)</label>
-            <input
-              id="expires"
-              v-model.number="expiresInDays"
-              type="number"
-              min="1"
-              max="30"
-              class="form-input"
-            />
-          </div>
+  <div class="space-y-6">
+    <section class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-text">Generate invite code</p>
+          <p class="text-xs text-text-secondary">
+            Configure how long the invite lasts and how many times it can be used.
+          </p>
+        </div>
+        <Sparkles :size="24" :stroke-width="1.8" class="text-primary" />
+      </div>
 
-          <div class="form-group">
-            <label for="maxUses">Max Uses</label>
-            <input
-              id="maxUses"
-              v-model.number="maxUses"
-              type="number"
-              min="1"
-              max="100"
-              class="form-input"
-            />
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        <label class="space-y-2 text-xs font-semibold text-text-secondary">
+          Expires in (days)
+          <input
+            id="expires"
+            v-model.number="expiresInDays"
+            type="number"
+            min="1"
+            max="30"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+          />
+        </label>
+        <label class="space-y-2 text-xs font-semibold text-text-secondary">
+          Max uses
+          <input
+            id="maxUses"
+            v-model.number="maxUses"
+            type="number"
+            min="1"
+            max="100"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+          />
+        </label>
+      </div>
+
+      <button
+        type="button"
+        class="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+        :disabled="isCreating || familyStore.isLoading"
+        @click="handleCreateInvite"
+      >
+        {{ isCreating ? 'Creating…' : 'Generate invite code' }}
+      </button>
+    </section>
+
+    <section class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-text">Active invite codes</p>
+          <p class="mt-1 text-xs text-text-secondary">
+            Share these with trusted family members to let them join.
+          </p>
+        </div>
+      </div>
+
+      <div v-if="familyStore.isLoading" class="mt-6 space-y-4">
+        <div v-for="skeleton in 2" :key="skeleton" class="rounded-xl border border-border bg-background px-4 py-4">
+          <div class="h-4 w-32 animate-pulse rounded bg-surface-muted/70" />
+          <div class="mt-3 grid gap-2 md:grid-cols-2">
+            <div class="h-3 w-full animate-pulse rounded bg-surface-muted/60" />
+            <div class="h-3 w-full animate-pulse rounded bg-surface-muted/60" />
           </div>
         </div>
-
-        <button
-          @click="handleCreateInvite"
-          :disabled="isCreating || familyStore.isLoading"
-          class="btn btn-primary"
-        >
-          {{ isCreating ? 'Creating...' : 'Generate Invite Code' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Active Invites List -->
-    <div class="invites-section">
-      <h3>Active Invite Codes</h3>
-
-      <div v-if="familyStore.isLoading" class="loading">
-        Loading invites...
       </div>
 
-      <div v-else-if="!hasInvites" class="empty-state">
-        <p>No active invite codes</p>
-        <p class="empty-hint">Create your first invite code above to invite family members</p>
+      <div
+        v-else-if="!hasInvites"
+        class="mt-6 rounded-xl border border-dashed border-border bg-surface-muted/40 px-6 py-10 text-center text-sm text-text-secondary"
+      >
+        No active invite codes. Generate one above when you’re ready to add someone new.
       </div>
 
-      <div v-else class="invites-list">
+      <div v-else class="mt-6 space-y-4">
         <div
           v-for="invite in activeInvites"
           :key="invite.id"
-          class="invite-card"
-          :class="{ expired: isExpired(invite.expiresAt) }"
+          class="grid gap-4 rounded-xl border border-border bg-background px-4 py-4 shadow-sm shadow-black/10 md:grid-cols-[1fr_auto]"
         >
-          <div class="invite-header">
-            <div class="invite-code-display">
-              <span class="code-label">Code:</span>
-              <code class="invite-code">{{ invite.code }}</code>
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="rounded-md bg-primary-soft px-3 py-1 font-mono text-sm font-semibold text-primary">
+                {{ invite.code }}
+              </span>
               <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary"
                 @click="copyToClipboard(invite.code)"
-                class="btn-icon"
-                :class="{ copied: copiedCode === invite.code }"
-                title="Copy to clipboard"
               >
-                <Check v-if="copiedCode === invite.code" :size="18" :stroke-width="2" />
-                <Clipboard v-else :size="18" :stroke-width="2" />
+                <component
+                  :is="copiedCode === invite.code ? Check : Clipboard"
+                  :size="14"
+                  :stroke-width="1.8"
+                  :class="copiedCode === invite.code ? 'text-success' : ''"
+                />
+                {{ copiedCode === invite.code ? 'Copied!' : 'Copy' }}
               </button>
             </div>
 
+            <div class="grid gap-2 text-xs text-text-secondary md:grid-cols-2">
+              <p class="flex items-center justify-between rounded-md border border-border bg-surface-muted/40 px-3 py-2">
+                <span class="font-semibold text-text-tertiary">Created</span>
+                <span>{{ formatDate(invite.createdAt) }}</span>
+              </p>
+              <p
+                class="flex items-center justify-between rounded-md border border-border bg-surface-muted/40 px-3 py-2"
+              >
+                <span class="font-semibold text-text-tertiary">Expires</span>
+                <span :class="isExpired(invite.expiresAt) ? 'text-danger font-semibold' : ''">
+                  {{ formatDate(invite.expiresAt) }}
+                </span>
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+              <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 font-semibold">
+                Usage
+                <span :class="['font-mono', usageStatusClass(invite.currentUses, invite.maxUses)]">
+                  {{ invite.currentUses }} / {{ invite.maxUses }}
+                </span>
+              </span>
+              <span
+                v-if="isExpired(invite.expiresAt)"
+                class="inline-flex items-center gap-2 rounded-full border border-danger bg-danger-soft px-3 py-1 font-semibold text-danger"
+              >
+                Expired
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-start justify-end">
             <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-md border border-danger bg-background px-3 py-2 text-xs font-semibold text-danger transition duration-150 ease-soft-snap hover:bg-danger-soft hover:text-danger"
               @click="handleRevokeInvite(invite.code)"
-              class="btn-danger-small"
-              title="Revoke invite"
             >
               Revoke
             </button>
           </div>
-
-          <div class="invite-details">
-            <div class="detail-row">
-              <span class="detail-label">Created:</span>
-              <span class="detail-value">{{ formatDate(invite.createdAt) }}</span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">Expires:</span>
-              <span class="detail-value" :class="{ expired: isExpired(invite.expiresAt) }">
-                {{ formatDate(invite.expiresAt) }}
-                <span v-if="isExpired(invite.expiresAt)" class="expired-badge">EXPIRED</span>
-              </span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">Usage:</span>
-              <span class="detail-value">
-                <span class="usage-count" :class="getUsageStatus(invite.currentUses, invite.maxUses)">
-                  {{ invite.currentUses }} / {{ invite.maxUses }}
-                </span>
-                <div class="usage-bar">
-                  <div
-                    class="usage-fill"
-                    :class="getUsageStatus(invite.currentUses, invite.maxUses)"
-                    :style="{ width: `${(invite.currentUses / invite.maxUses) * 100}%` }"
-                  ></div>
-                </div>
-              </span>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- New Code Modal -->
-    <div v-if="showNewCodeModal" class="modal-overlay" @click="closeModal">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h3>
-            <Sparkles :size="20" :stroke-width="2" class="modal-icon" />
-            Invite Code Created!
-          </h3>
-          <button @click="closeModal" class="modal-close">×</button>
-        </div>
+    <TransitionRoot :show="showNewCodeModal" as="template">
+      <Dialog as="div" class="relative z-50" @close="closeModal">
+        <TransitionChild
+          as="template"
+          enter="ease-out duration-200"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="ease-in duration-150"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/70 backdrop-blur" />
+        </TransitionChild>
 
-        <div class="modal-body">
-          <p class="modal-message">Share this code with family members to invite them:</p>
-
-          <div class="new-code-display">
-            <code class="new-invite-code">{{ newlyCreatedCode }}</code>
-            <button
-              @click="copyToClipboard(newlyCreatedCode)"
-              class="btn btn-primary btn-with-icon"
+        <div class="fixed inset-0 z-50 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="ease-out duration-200"
+              enter-from="opacity-0 translate-y-2 scale-95"
+              enter-to="opacity-100 translate-y-0 scale-100"
+              leave="ease-in duration-150"
+              leave-from="opacity-100 translate-y-0 scale-100"
+              leave-to="opacity-0 translate-y-2 scale-95"
             >
-              <Check v-if="copiedCode === newlyCreatedCode" :size="18" :stroke-width="2" />
-              <Clipboard v-else :size="18" :stroke-width="2" />
-              {{ copiedCode === newlyCreatedCode ? 'Copied!' : 'Copy Code' }}
-            </button>
+              <DialogPanel class="w-full max-w-md rounded-2xl border border-border bg-surface px-6 py-6 text-text shadow-xl shadow-black/40">
+                <div class="flex items-center justify-between gap-4">
+                  <DialogTitle class="text-lg font-semibold text-text">
+                    Invite code created
+                  </DialogTitle>
+                  <button
+                    type="button"
+                    class="rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary"
+                    @click="closeModal"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div class="mt-5 space-y-4">
+                  <div class="rounded-xl border border-primary/40 bg-primary-soft/30 px-4 py-6 text-center">
+                    <p class="font-mono text-3xl font-semibold tracking-[0.4em] text-primary">
+                      {{ newlyCreatedCode }}
+                    </p>
+                    <p class="mt-3 text-xs text-primary">
+                      Share this code privately with the person you want to invite.
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary">
+                    <p>Expires in {{ expiresInDays }} day{{ expiresInDays === 1 ? '' : 's' }}</p>
+                    <p>Max {{ maxUses }} use{{ maxUses === 1 ? '' : 's' }}</p>
+                  </div>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-
-          <p class="modal-hint">
-            This code will expire in {{ expiresInDays }} days and can be used {{ maxUses }} times.
-          </p>
         </div>
-
-        <div class="modal-footer">
-          <button @click="closeModal" class="btn btn-secondary">Close</button>
-        </div>
-      </div>
-    </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
-
-<style scoped>
-.invite-manager {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-/* Create Section */
-.create-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.create-section h3 {
-  margin: 0 0 1rem;
-  color: var(--color-text);
-  font-size: 1.125rem;
-}
-
-.create-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.form-input {
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-background);
-  color: var(--color-text);
-  font-size: 1rem;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Invites Section */
-.invites-section h3 {
-  margin: 0 0 1rem;
-  color: var(--color-text);
-  font-size: 1.125rem;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-secondary);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--color-text-secondary);
-}
-
-.empty-state p {
-  margin: 0;
-}
-
-.empty-hint {
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
-.invites-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Invite Card */
-.invite-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: box-shadow 0.2s;
-}
-
-.invite-card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.invite-card.expired {
-  opacity: 0.6;
-  background: var(--color-surface-variant);
-}
-
-.invite-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 1rem;
-}
-
-.invite-code-display {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.code-label {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.invite-code {
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  background: var(--color-background);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  letter-spacing: 2px;
-}
-
-.invite-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.875rem;
-}
-
-.detail-label {
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.detail-value {
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-value.expired {
-  color: var(--color-danger);
-}
-
-.expired-badge {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--color-danger);
-  background: rgba(239, 68, 68, 0.1);
-  padding: 0.125rem 0.5rem;
-  border-radius: 4px;
-}
-
-.usage-count {
-  font-weight: 600;
-}
-
-.usage-count.full {
-  color: var(--color-danger);
-}
-
-.usage-count.high {
-  color: #f59e0b;
-}
-
-.usage-count.medium {
-  color: #3b82f6;
-}
-
-.usage-count.low {
-  color: #10b981;
-}
-
-.usage-bar {
-  width: 100px;
-  height: 6px;
-  background: var(--color-border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.usage-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.usage-fill.full {
-  background: var(--color-danger);
-}
-
-.usage-fill.high {
-  background: #f59e0b;
-}
-
-.usage-fill.medium {
-  background: #3b82f6;
-}
-
-.usage-fill.low {
-  background: #10b981;
-}
-
-/* Buttons */
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: var(--color-surface-variant);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn-secondary:hover {
-  background: var(--color-border);
-}
-
-.btn-danger-small {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  color: var(--color-danger);
-  border: 1px solid var(--color-danger);
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-danger-small:hover {
-  background: var(--color-danger);
-  color: white;
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  color: var(--color-text-secondary);
-}
-
-.btn-icon:hover {
-  background: var(--color-surface-variant);
-}
-
-.btn-icon.copied {
-  color: #10b981;
-}
-
-.btn-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal {
-  background: var(--color-surface);
-  border-radius: 16px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.modal-icon {
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-}
-
-.modal-close {
-  background: transparent;
-  border: none;
-  font-size: 2rem;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-
-.modal-close:hover {
-  background: var(--color-surface-variant);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-message {
-  margin: 0 0 1.5rem;
-  color: var(--color-text-secondary);
-}
-
-.new-code-display {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--color-background);
-  border-radius: 12px;
-  margin-bottom: 1rem;
-}
-
-.new-invite-code {
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-align: center;
-  letter-spacing: 4px;
-}
-
-.modal-hint {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  justify-content: flex-end;
-}
-</style>
