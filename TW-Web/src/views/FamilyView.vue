@@ -140,15 +140,6 @@ const markAsPurchased = (memberId: string, itemId: string) => {
     item.purchasedAt = new Date()
   }
 }
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'high': return '#e74c3c'
-    case 'medium': return '#f39c12'
-    case 'low': return '#27ae60'
-    default: return '#95a5a6'
-  }
-}
 </script>
 
 <template>
@@ -196,7 +187,7 @@ const getPriorityColor = (priority: string) => {
                 </div>
                 <div
                   class="priority-badge"
-                  :style="{ backgroundColor: getPriorityColor(item.priority) }"
+                  :class="'priority-' + item.priority"
                 >
                   {{ item.priority }}
                 </div>
@@ -400,6 +391,18 @@ const getPriorityColor = (priority: string) => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.priority-badge.priority-high {
+  background-color: var(--priority-high);
+}
+
+.priority-badge.priority-medium {
+  background-color: var(--priority-medium);
+}
+
+.priority-badge.priority-low {
+  background-color: var(--priority-low);
 }
 
 .item-meta {

@@ -20,6 +20,12 @@
   --color-primary-soft: rgba(59, 130, 246, 0.15);
   --color-surface-variant: #1f1f1f;
 
+  /* Priority Colors */
+  --priority-high: #e74c3c;
+  --priority-medium: #f39c12;
+  --priority-low: #27ae60;
+  --priority-default: #95a5a6;
+
   /* Color scheme for browser UI */
   color-scheme: dark;
 

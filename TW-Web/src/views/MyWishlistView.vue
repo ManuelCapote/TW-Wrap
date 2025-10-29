@@ -88,15 +88,6 @@ const cancelEdit = () => {
 const cancelAdd = () => {
   showAddForm.value = false
 }
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'high': return '#e74c3c'
-    case 'medium': return '#f39c12'
-    case 'low': return '#27ae60'
-    default: return '#95a5a6'
-  }
-}
 </script>
 
 <template>
@@ -126,9 +117,9 @@ const getPriorityColor = (priority: string) => {
         <div class="item-details">
           <div class="item-header">
             <h3>{{ item.title }}</h3>
-            <div 
-              class="priority-badge" 
-              :style="{ backgroundColor: getPriorityColor(item.priority) }"
+            <div
+              class="priority-badge"
+              :class="'priority-' + item.priority"
             >
               {{ item.priority }}
             </div>
@@ -246,6 +237,18 @@ const getPriorityColor = (priority: string) => {
   white-space: nowrap;
   flex-shrink: 0;
   letter-spacing: 0.5px;
+}
+
+.priority-badge.priority-high {
+  background-color: var(--priority-high);
+}
+
+.priority-badge.priority-medium {
+  background-color: var(--priority-medium);
+}
+
+.priority-badge.priority-low {
+  background-color: var(--priority-low);
 }
 
 .item-meta {
