@@ -20,10 +20,24 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3000
 
+const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174']
+const envOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(origin => origin.length > 0)
+
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]))
+
 // Security middleware
 app.use(helmet())
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5174',
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`))
+    }
+  },
   credentials: true
 }))
 

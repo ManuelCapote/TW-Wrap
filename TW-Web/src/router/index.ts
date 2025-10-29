@@ -49,6 +49,14 @@ const router = createRouter({
         requiresAuth: true,
         title: 'Settings - TW-Web'
       }
+    },
+    {
+      path: '/design-spike',
+      name: 'design-spike',
+      component: () => import('../views/DesignSpike.vue'),
+      meta: {
+        title: 'Design Spike - TW-Web'
+      }
     }
   ]
 })

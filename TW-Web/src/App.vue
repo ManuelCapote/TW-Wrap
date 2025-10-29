@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const isDev = import.meta.env.DEV
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -23,6 +24,7 @@ const handleLogout = async () => {
           <RouterLink to="/my-wishlist" class="nav-link">Wishlist</RouterLink>
           <RouterLink to="/family" class="nav-link">Family</RouterLink>
           <RouterLink to="/settings" class="nav-link">Settings</RouterLink>
+          <RouterLink v-if="isDev" to="/design-spike" class="nav-link">Design Spike</RouterLink>
         </nav>
 
         <div class="user-section">
