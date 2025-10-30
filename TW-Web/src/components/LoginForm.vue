@@ -73,29 +73,32 @@ const fillDemo = () => {
 </script>
 
 <template>
-  <div class="login-form">
-    <h2>Welcome Back</h2>
-    <p class="subtitle">Sign in to your family wishlist account</p>
-    
-    <form @submit.prevent="handleSubmit" class="form">
-      <div class="form-group">
-        <label for="email">Email</label>
+  <div data-role="form-container" data-form-type="login" class="login-form">
+    <h2 data-role="form-title">Welcome Back</h2>
+    <p data-role="form-description" class="subtitle">Sign in to your family wishlist account</p>
+
+    <form data-role="form" @submit.prevent="handleSubmit" class="form">
+      <div data-role="form-group" class="form-group">
+        <label for="email" data-role="form-label">Email</label>
         <input
           id="email"
           v-model="formData.email"
           type="email"
+          data-role="form-input"
+          data-input-type="email"
+          :data-validation-state="formErrors.email ? 'invalid' : 'valid'"
           placeholder="your@email.com"
           class="form-input"
           :class="{ error: formErrors.email }"
           autocomplete="email"
         />
-        <span v-if="formErrors.email" class="error-message">{{ formErrors.email }}</span>
+        <span v-if="formErrors.email" data-role="form-error" class="error-message">{{ formErrors.email }}</span>
       </div>
 
-      <div class="form-group">
+      <div data-role="form-group" class="form-group">
         <div class="password-header">
-          <label for="password">Password</label>
-          <button type="button" @click="switchToForgotPassword" class="forgot-link">
+          <label for="password" data-role="form-label">Password</label>
+          <button type="button" data-role="button" data-action="forgot-password" @click="switchToForgotPassword" class="forgot-link">
             Forgot password?
           </button>
         </div>
@@ -103,38 +106,44 @@ const fillDemo = () => {
           id="password"
           v-model="formData.password"
           type="password"
+          data-role="form-input"
+          data-input-type="password"
+          :data-validation-state="formErrors.password ? 'invalid' : 'valid'"
           placeholder="Enter your password"
           class="form-input"
           :class="{ error: formErrors.password }"
           autocomplete="current-password"
         />
-        <span v-if="formErrors.password" class="error-message">{{ formErrors.password }}</span>
+        <span v-if="formErrors.password" data-role="form-error" class="error-message">{{ formErrors.password }}</span>
       </div>
 
-      <div v-if="authStore.error" class="auth-error">
+      <div v-if="authStore.error" data-role="alert" data-alert-type="error" class="auth-error">
         {{ authStore.error }}
       </div>
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
+        data-role="button"
+        data-action="submit"
+        :data-loading="authStore.isLoading"
         :disabled="!isValid || authStore.isLoading"
         class="submit-btn"
       >
         {{ authStore.isLoading ? 'Signing in...' : 'Sign In' }}
       </button>
 
-      <div class="demo-helper">
-        <button type="button" @click="fillDemo" class="demo-btn">
+      <div data-role="demo-section" class="demo-helper">
+        <button type="button" data-role="button" data-action="fill-demo" @click="fillDemo" class="demo-btn">
           Try Demo Account
         </button>
         <small>Email: demo@family.com, Password: demo123</small>
       </div>
     </form>
 
-    <div class="form-footer">
+    <div data-role="form-footer" class="form-footer">
       <p>
-        Don't have an account? 
-        <button type="button" @click="switchToRegister" class="link-btn">
+        Don't have an account?
+        <button type="button" data-role="button" data-action="switch-to-register" @click="switchToRegister" class="link-btn">
           Create one
         </button>
       </p>
