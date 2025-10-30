@@ -61,6 +61,21 @@ export class EmailService {
   ): Promise<void> {
     const resetUrl = `${this.frontendUrl}/reset-password?token=${resetToken}`
 
+    // In development without a mail server, just log the reset URL
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('📧 PASSWORD RESET EMAIL (Development Mode)')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log(`To: ${email}`)
+      console.log(`User: ${userName}`)
+      console.log(`\n🔗 Reset URL (click or copy):`)
+      console.log(`${resetUrl}`)
+      console.log('\n⏰ This link expires in 30 minutes')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+      return // Skip actual email sending in development
+    }
+
+    // Production: send actual email
     const mailOptions = {
       from: `"TW-Web" <${this.from}>`,
       to: email,
@@ -71,15 +86,8 @@ export class EmailService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions)
-
-      // Log email info in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('📧 Password reset email sent:')
-        console.log(`   To: ${email}`)
-        console.log(`   Message ID: ${info.messageId}`)
-        console.log(`   Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
-        console.log(`   Reset URL: ${resetUrl}`)
-      }
+      console.log(`📧 Password reset email sent to: ${email}`)
+      console.log(`   Message ID: ${info.messageId}`)
     } catch (error) {
       console.error('❌ Failed to send password reset email:', error)
       throw createError('Failed to send password reset email. Please try again later.', 500)
