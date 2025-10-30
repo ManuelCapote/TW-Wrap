@@ -5,6 +5,7 @@ import type { LoginCredentials } from '@/types'
 
 interface Emits {
   (e: 'switch-to-register'): void
+  (e: 'switch-to-forgot-password'): void
   (e: 'login-success'): void
 }
 
@@ -58,6 +59,10 @@ const switchToRegister = () => {
   emit('switch-to-register')
 }
 
+const switchToForgotPassword = () => {
+  emit('switch-to-forgot-password')
+}
+
 // Demo credentials helper
 const fillDemo = () => {
   formData.value = {
@@ -88,7 +93,12 @@ const fillDemo = () => {
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <div class="password-header">
+          <label for="password">Password</label>
+          <button type="button" @click="switchToForgotPassword" class="forgot-link">
+            Forgot password?
+          </button>
+        </div>
         <input
           id="password"
           v-model="formData.password"
@@ -168,10 +178,33 @@ const fillDemo = () => {
   gap: var(--spacing-sm);
 }
 
+.password-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .form-group label {
   font-weight: 600;
   color: var(--color-text);
   font-size: 14px;
+}
+
+.forgot-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.forgot-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .form-input {

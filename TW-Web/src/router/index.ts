@@ -9,9 +9,18 @@ const router = createRouter({
       path: '/auth',
       name: 'auth',
       component: () => import('../views/AuthView.vue'),
-      meta: { 
+      meta: {
         requiresGuest: true,
         title: 'Sign In - TW-Web'
+      }
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('../views/ResetPasswordView.vue'),
+      meta: {
+        requiresGuest: true,
+        title: 'Reset Password - TW-Web'
       }
     },
     {

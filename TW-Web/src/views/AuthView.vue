@@ -5,11 +5,12 @@ import { useAuthStore } from '@/stores/auth'
 import { Gift } from 'lucide-vue-next'
 import LoginForm from '@/components/LoginForm.vue'
 import RegisterForm from '@/components/RegisterForm.vue'
+import ForgotPasswordForm from '@/components/ForgotPasswordForm.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const currentView = ref<'login' | 'register'>('login')
+const currentView = ref<'login' | 'register' | 'forgot-password'>('login')
 
 const switchToLogin = () => {
   currentView.value = 'login'
@@ -18,6 +19,11 @@ const switchToLogin = () => {
 
 const switchToRegister = () => {
   currentView.value = 'register'
+  authStore.clearError()
+}
+
+const switchToForgotPassword = () => {
+  currentView.value = 'forgot-password'
   authStore.clearError()
 }
 
@@ -50,12 +56,17 @@ onMounted(() => {
           <LoginForm
             v-if="currentView === 'login'"
             @switch-to-register="switchToRegister"
+            @switch-to-forgot-password="switchToForgotPassword"
             @login-success="handleAuthSuccess"
           />
           <RegisterForm
-            v-else
+            v-else-if="currentView === 'register'"
             @switch-to-login="switchToLogin"
             @register-success="handleAuthSuccess"
+          />
+          <ForgotPasswordForm
+            v-else
+            @back-to-login="switchToLogin"
           />
         </Transition>
       </div>
