@@ -70,32 +70,38 @@ const backToLogin = () => {
 </script>
 
 <template>
-  <div class="forgot-password-form">
-    <h2>Reset Password</h2>
-    <p class="subtitle">Enter your email address and we'll send you a link to reset your password</p>
+  <div data-role="form-container" data-form-type="forgot-password" class="forgot-password-form">
+    <h2 data-role="form-title">Reset Password</h2>
+    <p data-role="form-description" class="subtitle">Enter your email address and we'll send you a link to reset your password</p>
 
-    <form v-if="!successMessage" @submit.prevent="handleSubmit" class="form">
-      <div class="form-group">
-        <label for="email">Email Address</label>
+    <form v-if="!successMessage" data-role="form" @submit.prevent="handleSubmit" class="form">
+      <div data-role="form-group" class="form-group">
+        <label for="email" data-role="form-label">Email Address</label>
         <input
           id="email"
           v-model="email"
           type="email"
+          data-role="form-input"
+          data-input-type="email"
+          :data-validation-state="emailError ? 'invalid' : 'valid'"
           placeholder="your@email.com"
           class="form-input"
           :class="{ error: emailError }"
           autocomplete="email"
           :disabled="isLoading"
         />
-        <span v-if="emailError" class="error-message">{{ emailError }}</span>
+        <span v-if="emailError" data-role="form-error" class="error-message">{{ emailError }}</span>
       </div>
 
-      <div v-if="error" class="auth-error">
+      <div v-if="error" data-role="alert" data-alert-type="error" class="auth-error">
         {{ error }}
       </div>
 
       <button
         type="submit"
+        data-role="button"
+        data-action="submit"
+        :data-loading="isLoading"
         :disabled="!isValid || isLoading"
         class="submit-btn"
       >
@@ -103,7 +109,7 @@ const backToLogin = () => {
       </button>
     </form>
 
-    <div v-else class="success-card">
+    <div v-else data-role="success-card" class="success-card">
       <div class="success-icon">✓</div>
       <h3>Check Your Email</h3>
       <p>{{ successMessage }}</p>
@@ -112,8 +118,8 @@ const backToLogin = () => {
       </p>
     </div>
 
-    <div class="form-footer">
-      <button type="button" @click="backToLogin" class="link-btn">
+    <div data-role="form-footer" class="form-footer">
+      <button type="button" data-role="button" data-action="back-to-login" @click="backToLogin" class="link-btn">
         ← Back to Login
       </button>
     </div>
