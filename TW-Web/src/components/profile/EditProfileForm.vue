@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { userApi } from '@/services/userApi'
 import { useAuthStore } from '@/stores/auth'
+import { generateAvatarDataUri } from '@/utils/avatar'
 
 interface Emits {
   (e: 'close'): void
@@ -13,19 +14,37 @@ const authStore = useAuthStore()
 
 // Form state
 const name = ref(authStore.user?.name || '')
-const avatar = ref(authStore.user?.avatar || '👤')
+const avatar = ref(authStore.user?.avatar || authStore.user?.email || 'default')
 const isLoading = ref(false)
 const error = ref('')
 
-// Simple emoji options for avatar
-const emojiOptions = [
-  '👤', '😊', '😎', '🎉', '🎁', '🎄', '🎅', '⭐',
-  '❤️', '💙', '💚', '💛', '🧡', '💜', '🎈', '🌟'
+// Avatar seed options - different seeds generate different DiceBear avatars
+const avatarSeeds = [
+  { seed: authStore.user?.email || 'user', label: 'Your Default' },
+  { seed: 'happy', label: 'Happy' },
+  { seed: 'cool', label: 'Cool' },
+  { seed: 'friendly', label: 'Friendly' },
+  { seed: 'cheerful', label: 'Cheerful' },
+  { seed: 'bright', label: 'Bright' },
+  { seed: 'sunny', label: 'Sunny' },
+  { seed: 'smile', label: 'Smile' },
+  { seed: 'peace', label: 'Peace' },
+  { seed: 'joy', label: 'Joy' },
+  { seed: 'star', label: 'Star' },
+  { seed: 'heart', label: 'Heart' },
+  { seed: 'wave', label: 'Wave' },
+  { seed: 'thumbs', label: 'Thumbs' },
+  { seed: 'victory', label: 'Victory' },
+  { seed: 'sparkle', label: 'Sparkle' }
 ]
 
 const isValid = computed(() => {
   return name.value.trim().length > 0
 })
+
+const getAvatarUrl = (seed: string) => {
+  return generateAvatarDataUri(seed)
+}
 
 const handleSubmit = async () => {
   if (!isValid.value || isLoading.value) return
@@ -83,18 +102,24 @@ const cancel = () => {
         </div>
 
         <div class="form-group">
-          <label>Avatar</label>
+          <label>Avatar Style</label>
+          <p class="help-text">Choose a style for your DiceBear avatar</p>
           <div class="avatar-picker">
             <button
-              v-for="emoji in emojiOptions"
-              :key="emoji"
+              v-for="option in avatarSeeds"
+              :key="option.seed"
               type="button"
-              @click="avatar = emoji"
+              @click="avatar = option.seed"
               class="avatar-option"
-              :class="{ selected: avatar === emoji }"
+              :class="{ selected: avatar === option.seed }"
               :disabled="isLoading"
+              :title="option.label"
             >
-              {{ emoji }}
+              <img
+                :src="getAvatarUrl(option.seed)"
+                :alt="option.label"
+                class="avatar-image"
+              />
             </button>
           </div>
         </div>
@@ -102,7 +127,11 @@ const cancel = () => {
         <div class="preview">
           <label>Preview</label>
           <div class="preview-card">
-            <span class="preview-avatar">{{ avatar }}</span>
+            <img
+              :src="getAvatarUrl(avatar)"
+              alt="Avatar preview"
+              class="preview-avatar-img"
+            />
             <span class="preview-name">{{ name || 'Your Name' }}</span>
           </div>
         </div>
@@ -229,7 +258,6 @@ const cancel = () => {
 
 .avatar-option {
   aspect-ratio: 1;
-  font-size: 1.5rem;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-background);
@@ -238,6 +266,15 @@ const cancel = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
 }
 
 .avatar-option:hover:not(:disabled) {
@@ -249,6 +286,7 @@ const cancel = () => {
 .avatar-option.selected {
   border-color: var(--color-primary);
   background: var(--color-primary-bg);
+  border-width: 3px;
 }
 
 .avatar-option:disabled {
@@ -278,13 +316,12 @@ const cancel = () => {
   border-radius: var(--radius-sm);
 }
 
-.preview-avatar {
-  font-size: 2rem;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.preview-avatar-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
 }
 
 .preview-name {

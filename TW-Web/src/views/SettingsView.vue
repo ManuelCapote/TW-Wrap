@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useFamilyStore } from '@/stores/family'
 import { useAuthStore } from '@/stores/auth'
 import FamilyInfoCard from '@/components/family/FamilyInfoCard.vue'
@@ -10,6 +10,7 @@ import EditProfileForm from '@/components/profile/EditProfileForm.vue'
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm.vue'
 import DeleteAccountModal from '@/components/profile/DeleteAccountModal.vue'
 import { Info, Ticket, X, CheckCircle, AlertTriangle, User, Lock, Trash2, Edit } from 'lucide-vue-next'
+import { generateAvatarDataUri } from '@/utils/avatar'
 
 const familyStore = useFamilyStore()
 const authStore = useAuthStore()
@@ -18,6 +19,10 @@ const showEditProfile = ref(false)
 const showChangePassword = ref(false)
 const showDeleteAccount = ref(false)
 const successMessage = ref<string | null>(null)
+
+const userAvatarUrl = computed(() => {
+  return generateAvatarDataUri(authStore.user?.avatar || authStore.user?.email || 'default')
+})
 
 const handleJoinSuccess = async () => {
   showJoinModal.value = false
@@ -78,9 +83,12 @@ const handlePasswordSuccess = () => {
           <!-- Profile Info Display -->
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-center gap-4">
-              <div data-role="avatar" class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-3xl">
-                {{ authStore.user?.avatar || '👤' }}
-              </div>
+              <img
+                :src="userAvatarUrl"
+                alt="User avatar"
+                data-role="avatar"
+                class="h-16 w-16 rounded-full border-2 border-border object-cover"
+              />
               <div class="space-y-1">
                 <h3 class="text-lg font-semibold text-text">{{ authStore.user?.name }}</h3>
                 <p class="text-sm text-text-secondary">{{ authStore.user?.email }}</p>
