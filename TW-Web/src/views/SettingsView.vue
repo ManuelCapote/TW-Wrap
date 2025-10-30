@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { useAuthStore } from '@/stores/auth'
 import FamilyInfoCard from '@/components/family/FamilyInfoCard.vue'
 import MemberManagement from '@/components/family/MemberManagement.vue'
 import InviteCodeManager from '@/components/family/InviteCodeManager.vue'
 import JoinFamilyModal from '@/components/family/JoinFamilyModal.vue'
-import { Info, Ticket, X, CheckCircle, AlertTriangle } from 'lucide-vue-next'
+import EditProfileForm from '@/components/profile/EditProfileForm.vue'
+import ChangePasswordForm from '@/components/profile/ChangePasswordForm.vue'
+import DeleteAccountModal from '@/components/profile/DeleteAccountModal.vue'
+import { Info, Ticket, X, CheckCircle, AlertTriangle, User, Lock, Trash2, Edit } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
+const authStore = useAuthStore()
 const showJoinModal = ref(false)
+const showEditProfile = ref(false)
+const showChangePassword = ref(false)
+const showDeleteAccount = ref(false)
 const successMessage = ref<string | null>(null)
 
 const handleJoinSuccess = async () => {
@@ -18,6 +26,20 @@ const handleJoinSuccess = async () => {
   await familyStore.fetchFamilyMembers()
   await familyStore.fetchFamily()
 
+  setTimeout(() => {
+    successMessage.value = null
+  }, 5000)
+}
+
+const handleProfileSuccess = () => {
+  successMessage.value = 'Profile updated successfully!'
+  setTimeout(() => {
+    successMessage.value = null
+  }, 5000)
+}
+
+const handlePasswordSuccess = () => {
+  successMessage.value = 'Password changed successfully!'
   setTimeout(() => {
     successMessage.value = null
   }, 5000)
@@ -33,16 +55,95 @@ const handleJoinSuccess = async () => {
         </p>
         <div class="space-y-3">
           <h1 data-role="page-title" class="text-4xl font-semibold tracking-tight md:text-5xl">
-            Manage your family workspace
+            Account & family settings
           </h1>
           <p data-role="page-description" class="max-w-2xl text-base text-text-secondary md:text-lg">
-            Update family details, curate members, and share invite codes with the people you trust.
+            Manage your profile, security settings, and family workspace.
           </p>
         </div>
       </header>
 
-      <section data-role="section" data-section-type="settings-components" class="space-y-6">
-        <FamilyInfoCard />
+      <!-- User Profile Section -->
+      <section data-role="section" data-section-type="user-profile" class="space-y-4">
+        <div class="flex items-center gap-2">
+          <User :size="20" :stroke-width="1.8" class="text-text-tertiary" />
+          <h2 class="text-xl font-semibold tracking-tight">Your Profile</h2>
+        </div>
+
+        <div
+          data-role="card"
+          data-card-type="user-profile"
+          class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20"
+        >
+          <!-- Profile Info Display -->
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div data-role="avatar" class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-3xl">
+                {{ authStore.user?.avatar || '👤' }}
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-lg font-semibold text-text">{{ authStore.user?.name }}</h3>
+                <p class="text-sm text-text-secondary">{{ authStore.user?.email }}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              data-role="button"
+              data-action="edit-profile"
+              class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover"
+              @click="showEditProfile = true"
+            >
+              <Edit :size="16" :stroke-width="1.8" />
+              Edit Profile
+            </button>
+          </div>
+
+          <!-- Profile Actions -->
+          <div class="mt-6 grid gap-3 border-t border-border pt-6 md:grid-cols-2">
+            <button
+              type="button"
+              data-role="button"
+              data-action="change-password"
+              class="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-left transition duration-200 ease-soft-snap hover:border-primary hover:bg-primary-soft/20"
+              @click="showChangePassword = true"
+            >
+              <div class="rounded-lg bg-primary-soft p-2 text-primary">
+                <Lock :size="18" :stroke-width="1.8" />
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm font-semibold text-text">Change Password</p>
+                <p class="text-xs text-text-secondary">Update your account password</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              data-role="button"
+              data-action="delete-account"
+              class="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-left transition duration-200 ease-soft-snap hover:border-danger hover:bg-danger-soft/20"
+              @click="showDeleteAccount = true"
+            >
+              <div class="rounded-lg bg-danger-soft p-2 text-danger">
+                <Trash2 :size="18" :stroke-width="1.8" />
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm font-semibold text-danger">Delete Account</p>
+                <p class="text-xs text-text-secondary">Permanently remove your account</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Family Management Section -->
+      <section data-role="section" data-section-type="family-settings" class="space-y-4">
+        <div class="flex items-center gap-2">
+          <Info :size="20" :stroke-width="1.8" class="text-text-tertiary" />
+          <h2 class="text-xl font-semibold tracking-tight">Family Workspace</h2>
+        </div>
+
+        <div class="space-y-6">
+          <FamilyInfoCard />
 
         <MemberManagement />
 
@@ -85,6 +186,7 @@ const handleJoinSuccess = async () => {
             </button>
           </div>
         </div>
+        </div>
       </section>
 
       <div v-if="successMessage" data-role="alert" data-alert-type="success" class="flex items-center gap-3 rounded-xl border border-success bg-success-soft/40 px-4 py-3 text-sm font-semibold text-success">
@@ -121,11 +223,29 @@ const handleJoinSuccess = async () => {
       </div>
     </div>
 
+    <!-- Modals -->
     <JoinFamilyModal
       :is-open="showJoinModal"
       :current-family-name="familyStore.familyName"
       @close="showJoinModal = false"
       @success="handleJoinSuccess"
+    />
+
+    <EditProfileForm
+      v-if="showEditProfile"
+      @close="showEditProfile = false"
+      @success="handleProfileSuccess"
+    />
+
+    <ChangePasswordForm
+      v-if="showChangePassword"
+      @close="showChangePassword = false"
+      @success="handlePasswordSuccess"
+    />
+
+    <DeleteAccountModal
+      v-if="showDeleteAccount"
+      @close="showDeleteAccount = false"
     />
   </div>
 </template>

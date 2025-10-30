@@ -798,6 +798,29 @@ export class PrismaDatabase {
   }
 
   /**
+   * Delete a user account permanently
+   * This will cascade delete all related data:
+   * - Wishlist items
+   * - Password reset tokens
+   * - Created invites
+   * And set purchasedBy to null for items they purchased
+   *
+   * @param userId - ID of the user to delete
+   * @returns true if successful, false if user not found
+   */
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      await prisma.user.delete({
+        where: { id: userId }
+      })
+      return true
+    } catch (error) {
+      // User not found or other error
+      return false
+    }
+  }
+
+  /**
    * Clean up expired password reset tokens
    * This should be run periodically (e.g., daily cron job)
    */

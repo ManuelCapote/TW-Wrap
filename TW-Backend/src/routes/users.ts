@@ -3,6 +3,7 @@ import { database } from '../services/database'
 import { asyncHandler, createError } from '../middleware/errorHandler'
 import { authenticateToken } from '../middleware/auth'
 import { ApiResponse } from '../types'
+import bcrypt from 'bcryptjs'
 
 const router = Router()
 
@@ -42,6 +43,82 @@ router.put('/me', authenticateToken, asyncHandler(async (req, res) => {
     success: true,
     data: updatedUser,
     message: 'User profile updated successfully'
+  }
+
+  res.json(response)
+}))
+
+// Change password (authenticated users)
+router.put('/me/password', authenticateToken, asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+  const userId = req.user!.userId
+
+  // Validate input
+  if (!currentPassword || !newPassword) {
+    throw createError('Current password and new password are required', 400)
+  }
+
+  if (newPassword.length < 6) {
+    throw createError('New password must be at least 6 characters', 400)
+  }
+
+  // Get current password hash
+  const currentPasswordHash = await database.getUserPassword(userId)
+  if (!currentPasswordHash) {
+    throw createError('User not found', 404)
+  }
+
+  // Verify current password
+  const isValidPassword = await bcrypt.compare(currentPassword, currentPasswordHash)
+  if (!isValidPassword) {
+    throw createError('Current password is incorrect', 401)
+  }
+
+  // Hash new password
+  const newPasswordHash = await bcrypt.hash(newPassword, 12)
+
+  // Update password
+  await database.updateUserPassword(userId, newPasswordHash)
+
+  const response: ApiResponse = {
+    success: true,
+    message: 'Password changed successfully'
+  }
+
+  res.json(response)
+}))
+
+// Delete current user account
+router.delete('/me', authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user!.userId
+
+  // Get user to check if they're the last family member
+  const user = await database.getUserById(userId)
+  if (!user) {
+    throw createError('User not found', 404)
+  }
+
+  const family = await database.getFamilyById(user.familyId)
+  if (!family) {
+    throw createError('Family not found', 404)
+  }
+
+  // Check if user is the last member of the family
+  if (family.members.length === 1) {
+    // Delete the family as well (it will be empty after user deletion)
+    // The cascade delete will handle this through Prisma schema
+  }
+
+  // Delete user (cascades to wishlist items, reset tokens, etc.)
+  const deleted = await database.deleteUser(userId)
+
+  if (!deleted) {
+    throw createError('Failed to delete account', 500)
+  }
+
+  const response: ApiResponse = {
+    success: true,
+    message: 'Account deleted successfully'
   }
 
   res.json(response)
