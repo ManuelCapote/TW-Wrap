@@ -112,16 +112,18 @@ watch(trimmedUrl, currentUrl => {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-border bg-surface px-6 py-6 shadow-md shadow-black/20 md:px-8 md:py-8">
-    <div class="flex flex-wrap items-start justify-between gap-6">
+  <div data-role="form-container" data-form-type="add-item" class="rounded-2xl border border-border bg-surface px-6 py-6 shadow-md shadow-black/20 md:px-8 md:py-8">
+    <div data-role="form-header" class="flex flex-wrap items-start justify-between gap-6">
       <div class="space-y-2">
-        <h3 class="text-xl font-semibold tracking-tight text-text">Add new item</h3>
-        <p class="text-sm text-text-secondary">
+        <h3 data-role="form-title" class="text-xl font-semibold tracking-tight text-text">Add new item</h3>
+        <p data-role="form-description" class="text-sm text-text-secondary">
           Paste a product link to auto-fill details or add the essentials manually.
         </p>
       </div>
       <button
         type="button"
+        data-role="button"
+        data-action="cancel"
         class="rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
         @click="handleCancel"
       >
@@ -129,14 +131,14 @@ watch(trimmedUrl, currentUrl => {
       </button>
     </div>
 
-    <form class="mt-6 space-y-6" @submit.prevent="handleSave">
-      <fieldset class="space-y-4 rounded-xl border border-border bg-surface-muted/40 px-4 py-4">
+    <form data-role="form" class="mt-6 space-y-6" @submit.prevent="handleSave">
+      <fieldset data-role="form-group" data-group-type="url-parser" class="space-y-4 rounded-xl border border-border bg-surface-muted/40 px-4 py-4">
         <legend class="px-2 text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
           Optional link
         </legend>
 
         <div class="space-y-2">
-          <label for="url" class="text-sm font-semibold text-text">Product link</label>
+          <label for="url" data-role="form-label" class="text-sm font-semibold text-text">Product link</label>
           <p class="text-xs text-text-secondary">
             Paste a store link to pull the name and store automatically.
           </p>
@@ -145,6 +147,9 @@ watch(trimmedUrl, currentUrl => {
               id="url"
               v-model="urlInput"
               type="url"
+              data-role="form-input"
+              data-input-type="url"
+              :data-validation-state="hasInvalidUrl ? 'invalid' : 'valid'"
               placeholder="https://example.com/your-item"
               :class="[
                 'flex-1 rounded-md border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40',
@@ -155,6 +160,9 @@ watch(trimmedUrl, currentUrl => {
             />
             <button
               type="button"
+              data-role="button"
+              data-action="parse-url"
+              :data-loading="isLoading"
               class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
               :disabled="!canParseUrl || isLoading"
               @click="parseUrl"
@@ -162,35 +170,37 @@ watch(trimmedUrl, currentUrl => {
               {{ isLoading ? 'Parsing…' : 'Parse link' }}
             </button>
           </div>
-          <p v-if="hasInvalidUrl" class="text-xs text-danger">
-            This link doesn’t look valid. We’ll save the item without it, or add the full URL (including https://).
+          <p v-if="hasInvalidUrl" data-role="form-error" class="text-xs text-danger">
+            This link doesn't look valid. We'll save the item without it, or add the full URL (including https://).
           </p>
         </div>
 
-        <div v-if="error" class="rounded-lg border border-danger-soft bg-danger-soft px-3 py-2 text-xs text-danger">
+        <div v-if="error" data-role="alert" data-alert-type="error" class="rounded-lg border border-danger-soft bg-danger-soft px-3 py-2 text-xs text-danger">
           {{ error }}
         </div>
 
-        <div v-if="isLoading" class="flex items-center gap-2 text-xs text-text-secondary">
+        <div v-if="isLoading" data-role="loading-indicator" class="flex items-center gap-2 text-xs text-text-secondary">
           <span class="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
           Extracting product information…
         </div>
 
         <div
           v-if="productPreview"
+          data-role="preview-card"
+          data-card-type="product-preview"
           class="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-text"
         >
           <div>
             <div class="flex items-center gap-2">
               <CheckCircle :size="16" :stroke-width="2" class="text-success" />
-              <p class="font-semibold">{{ productPreview.title }}</p>
+              <p data-role="preview-title" class="font-semibold">{{ productPreview.title }}</p>
             </div>
-            <div class="mt-1 flex items-center gap-2 text-xs text-text-secondary">
+            <div data-role="preview-metadata" class="mt-1 flex items-center gap-2 text-xs text-text-secondary">
               <span v-if="productPreview.store" class="inline-flex items-center gap-1">
                 <MapPin :size="12" :stroke-width="2" />
                 {{ productPreview.store }}
               </span>
-              <span class="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-widest text-text-tertiary">
+              <span data-role="badge" data-badge-type="status" class="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-widest text-text-tertiary">
                 Name and store extracted
               </span>
             </div>
@@ -199,55 +209,63 @@ watch(trimmedUrl, currentUrl => {
       </fieldset>
 
       <div class="grid gap-6 md:grid-cols-2">
-        <div class="space-y-2">
-          <label for="title" class="text-sm font-semibold text-text">Name *</label>
+        <div data-role="form-group" class="space-y-2">
+          <label for="title" data-role="form-label" class="text-sm font-semibold text-text">Name *</label>
           <input
             id="title"
             v-model="formData.title"
             type="text"
+            data-role="form-input"
+            data-input-type="title"
             placeholder="Product name"
             class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
             required
           />
         </div>
-        <div class="space-y-2">
-          <label for="store" class="text-sm font-semibold text-text">Store</label>
+        <div data-role="form-group" class="space-y-2">
+          <label for="store" data-role="form-label" class="text-sm font-semibold text-text">Store</label>
           <input
             id="store"
             v-model="formData.store"
             type="text"
+            data-role="form-input"
+            data-input-type="store"
             placeholder="Amazon, Target…"
             class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>
 
-      <div class="space-y-2">
-        <label for="description" class="text-sm font-semibold text-text">Notes</label>
+      <div data-role="form-group" class="space-y-2">
+        <label for="description" data-role="form-label" class="text-sm font-semibold text-text">Notes</label>
         <textarea
           id="description"
           v-model="formData.description"
           rows="3"
+          data-role="form-input"
+          data-input-type="description"
           placeholder="Share size, color, or context that helps someone pick the perfect version."
           class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
         ></textarea>
       </div>
 
       <div class="grid gap-6 md:grid-cols-3">
-        <div class="space-y-2">
-          <label for="quantity" class="text-sm font-semibold text-text">Quantity *</label>
+        <div data-role="form-group" class="space-y-2">
+          <label for="quantity" data-role="form-label" class="text-sm font-semibold text-text">Quantity *</label>
           <input
             id="quantity"
             v-model.number="formData.quantity"
             min="1"
             type="number"
+            data-role="form-input"
+            data-input-type="quantity"
             placeholder="1"
             class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
             required
           />
         </div>
-        <div class="space-y-2">
-          <label for="price" class="text-sm font-semibold text-text">Price</label>
+        <div data-role="form-group" class="space-y-2">
+          <label for="price" data-role="form-label" class="text-sm font-semibold text-text">Price</label>
           <div class="flex gap-2">
             <input
               id="price"
@@ -255,11 +273,15 @@ watch(trimmedUrl, currentUrl => {
               min="0"
               type="number"
               step="0.01"
+              data-role="form-input"
+              data-input-type="price"
               placeholder="0.00"
               class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
             />
             <select
               v-model="formData.currency"
+              data-role="form-input"
+              data-input-type="currency"
               class="rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
             >
               <option value="USD">USD</option>
@@ -269,11 +291,13 @@ watch(trimmedUrl, currentUrl => {
             </select>
           </div>
         </div>
-        <div class="space-y-2">
-          <label for="priority" class="text-sm font-semibold text-text">Priority</label>
+        <div data-role="form-group" class="space-y-2">
+          <label for="priority" data-role="form-label" class="text-sm font-semibold text-text">Priority</label>
           <select
             id="priority"
             v-model="formData.priority"
+            data-role="form-input"
+            data-input-type="priority"
             class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text outline-none transition focus:border-border-hover focus:ring-2 focus:ring-primary/40"
           >
             <option value="low">Low</option>
@@ -283,20 +307,24 @@ watch(trimmedUrl, currentUrl => {
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-text-tertiary">
+      <div data-role="form-actions" class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-text-tertiary">
         <p>
-          These items are stored locally for now. When the API is ready, we’ll sync everything automatically.
+          These items are stored locally for now. When the API is ready, we'll sync everything automatically.
         </p>
         <div class="flex gap-2">
           <button
             type="submit"
-            class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+            data-role="button"
+            data-action="submit"
             :disabled="!canSave"
+            class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
           >
             Save item
           </button>
           <button
             type="button"
+            data-role="button"
+            data-action="cancel"
             class="rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-border-hover hover:text-text"
             @click="handleCancel"
           >
