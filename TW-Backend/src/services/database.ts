@@ -711,6 +711,108 @@ export class PrismaDatabase {
   }
 
   // ============================================================================
+  // PASSWORD RESET TOKEN METHODS
+  // ============================================================================
+
+  /**
+   * Create a password reset token for a user
+   *
+   * @param userId - ID of the user requesting password reset
+   * @param hashedToken - Hashed reset token (for security)
+   * @param expiresAt - When this token expires
+   * @returns The created token record
+   */
+  async createPasswordResetToken(
+    userId: string,
+    hashedToken: string,
+    expiresAt: Date
+  ): Promise<any> {
+    // First, delete any existing unused tokens for this user
+    await prisma.passwordResetToken.deleteMany({
+      where: {
+        userId,
+        used: false
+      }
+    })
+
+    // Create new reset token
+    const token = await prisma.passwordResetToken.create({
+      data: {
+        userId,
+        token: hashedToken,
+        expiresAt,
+        used: false
+      }
+    })
+
+    return token
+  }
+
+  /**
+   * Get a password reset token by hashed token value
+   *
+   * @param hashedToken - The hashed token to look up
+   * @returns The token record or null if not found
+   */
+  async getPasswordResetToken(hashedToken: string): Promise<any | null> {
+    const token = await prisma.passwordResetToken.findUnique({
+      where: { token: hashedToken }
+    })
+    return token
+  }
+
+  /**
+   * Mark a password reset token as used
+   *
+   * @param tokenId - ID of the token to mark as used
+   */
+  async markPasswordResetTokenAsUsed(tokenId: string): Promise<void> {
+    await prisma.passwordResetToken.update({
+      where: { id: tokenId },
+      data: { used: true }
+    })
+  }
+
+  /**
+   * Delete a password reset token
+   *
+   * @param tokenId - ID of the token to delete
+   */
+  async deletePasswordResetToken(tokenId: string): Promise<void> {
+    await prisma.passwordResetToken.delete({
+      where: { id: tokenId }
+    })
+  }
+
+  /**
+   * Update a user's password
+   *
+   * @param userId - ID of the user
+   * @param hashedPassword - New hashed password
+   */
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    })
+  }
+
+  /**
+   * Clean up expired password reset tokens
+   * This should be run periodically (e.g., daily cron job)
+   */
+  async cleanupExpiredResetTokens(): Promise<number> {
+    const result = await prisma.passwordResetToken.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date() // less than current time = expired
+        }
+      }
+    })
+    return result.count
+  }
+
+  // ============================================================================
   // UTILITY METHODS
   // ============================================================================
 

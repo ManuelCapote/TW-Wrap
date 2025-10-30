@@ -83,6 +83,9 @@ model User {
   // RELATIONSHIP: A User can create many family invites
   createdInvites    FamilyInvite[]
 
+  // RELATIONSHIP: A User can have many password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
   // Indexes for performance optimization
   @@index([email])
   @@index([familyId])
@@ -127,6 +130,37 @@ model WishlistItem {
   @@index([userId])
   @@index([isPurchased])
   @@index([priority])
+}
+
+// PASSWORD RESET TOKEN MODEL
+// Represents a password reset request token
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  // Unique identifier for this reset token
+
+  token     String   @unique
+  // The actual reset token (hashed for security)
+  // Generated using crypto.randomBytes(32).toString('hex')
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // The user who requested the password reset
+  // onDelete: Cascade - if user is deleted, delete all their reset tokens
+
+  expiresAt DateTime
+  // When this token expires (typically 30 minutes from creation)
+
+  used      Boolean  @default(false)
+  // Whether this token has been used (single-use tokens)
+
+  createdAt DateTime @default(now())
+  // When this token was created
+
+  // Indexes for performance
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([used])
 }
 
 // FAMILY INVITE MODEL

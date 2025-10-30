@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import dotenv from 'dotenv'
 import { database } from './database'
+import { emailService } from './email'
 import { AuthUser, AuthResponse, LoginCredentials, CreateUserData, JWTPayload } from '../types'
 import { createError } from '../middleware/errorHandler'
 
@@ -194,6 +196,126 @@ export class AuthService {
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
+  }
+
+  /**
+   * Request a password reset for the given email
+   * Generates a secure token and sends reset email
+   * @param email - User's email address
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim()
+
+    // Find user by email (but don't reveal if user exists for security)
+    const user = await database.getUserByEmail(normalizedEmail)
+
+    // Always return success to prevent email enumeration attacks
+    // Even if user doesn't exist, we pretend the email was sent
+    if (!user) {
+      console.log(`Password reset requested for non-existent email: ${normalizedEmail}`)
+      return // Silently succeed
+    }
+
+    // Generate secure reset token (64 characters)
+    const resetToken = crypto.randomBytes(32).toString('hex')
+
+    // Hash the token before storing in database (extra security)
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+
+    // Set expiration to 30 minutes from now
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000)
+
+    // Store reset token in database
+    await database.createPasswordResetToken(user.id, hashedToken, expiresAt)
+
+    // Send reset email
+    await emailService.sendPasswordResetEmail(user.email, resetToken, user.name)
+
+    console.log(`Password reset email sent to: ${user.email}`)
+  }
+
+  /**
+   * Reset password using the provided token
+   * @param token - Reset token from email
+   * @param newPassword - New password
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    // Validate new password
+    if (!newPassword || newPassword.length < 6) {
+      throw createError('Password must be at least 6 characters', 400)
+    }
+
+    // Hash the token to match what's stored in database
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
+    // Find and validate reset token
+    const resetTokenRecord = await database.getPasswordResetToken(hashedToken)
+
+    if (!resetTokenRecord) {
+      throw createError('Invalid or expired reset token', 400)
+    }
+
+    // Check if token is expired
+    if (new Date() > resetTokenRecord.expiresAt) {
+      await database.deletePasswordResetToken(resetTokenRecord.id)
+      throw createError('Reset token has expired. Please request a new one.', 400)
+    }
+
+    // Check if token has already been used
+    if (resetTokenRecord.used) {
+      throw createError('This reset token has already been used', 400)
+    }
+
+    // Hash new password
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '12')
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds)
+
+    // Update user's password
+    await database.updateUserPassword(resetTokenRecord.userId, hashedPassword)
+
+    // Mark token as used (prevents reuse)
+    await database.markPasswordResetTokenAsUsed(resetTokenRecord.id)
+
+    // Get user info for confirmation email
+    const user = await database.getUserById(resetTokenRecord.userId)
+
+    // Send confirmation email (optional, won't throw on failure)
+    if (user) {
+      await emailService.sendPasswordResetConfirmation(user.email, user.name)
+    }
+
+    console.log(`Password reset successful for user: ${resetTokenRecord.userId}`)
+  }
+
+  /**
+   * Validate if a reset token is valid and not expired
+   * @param token - Reset token to validate
+   * @returns boolean - true if valid
+   */
+  async validateResetToken(token: string): Promise<boolean> {
+    try {
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+      const resetTokenRecord = await database.getPasswordResetToken(hashedToken)
+
+      if (!resetTokenRecord) {
+        return false
+      }
+
+      // Check expiration
+      if (new Date() > resetTokenRecord.expiresAt) {
+        return false
+      }
+
+      // Check if already used
+      if (resetTokenRecord.used) {
+        return false
+      }
+
+      return true
+    } catch (error) {
+      return false
+    }
   }
 }
 

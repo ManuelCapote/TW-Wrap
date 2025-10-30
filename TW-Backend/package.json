@@ -32,10 +32,14 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
+    "nodemailer": "^7.0.10",
     "nodemon": "^3.1.10",
     "prisma": "^6.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^7.0.3"
   }
 }
