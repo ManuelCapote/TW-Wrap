@@ -118,97 +118,115 @@ const switchToLogin = () => {
 </script>
 
 <template>
-  <div class="register-form">
-    <h2>Join Your Family</h2>
-    <p class="subtitle">Create an account to start sharing wishlists</p>
-    
-    <form @submit.prevent="handleSubmit" class="form">
-      <div class="form-group">
-        <label for="name">Full Name</label>
+  <div data-role="form-container" data-form-type="register" class="register-form">
+    <h2 data-role="form-title">Join Your Family</h2>
+    <p data-role="form-description" class="subtitle">Create an account to start sharing wishlists</p>
+
+    <form data-role="form" @submit.prevent="handleSubmit" class="form">
+      <div data-role="form-group" class="form-group">
+        <label for="name" data-role="form-label">Full Name</label>
         <input
           id="name"
           v-model="formData.name"
           type="text"
+          data-role="form-input"
+          data-input-type="name"
+          :data-validation-state="formErrors.name ? 'invalid' : 'valid'"
           placeholder="Your full name"
           class="form-input"
           :class="{ error: formErrors.name }"
           autocomplete="name"
         />
-        <span v-if="formErrors.name" class="error-message">{{ formErrors.name }}</span>
+        <span v-if="formErrors.name" data-role="form-error" class="error-message">{{ formErrors.name }}</span>
       </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
+      <div data-role="form-group" class="form-group">
+        <label for="email" data-role="form-label">Email</label>
         <input
           id="email"
           v-model="formData.email"
           type="email"
+          data-role="form-input"
+          data-input-type="email"
+          :data-validation-state="formErrors.email ? 'invalid' : 'valid'"
           placeholder="your@email.com"
           class="form-input"
           :class="{ error: formErrors.email }"
           autocomplete="email"
         />
-        <span v-if="formErrors.email" class="error-message">{{ formErrors.email }}</span>
+        <span v-if="formErrors.email" data-role="form-error" class="error-message">{{ formErrors.email }}</span>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
+      <div data-role="form-group" class="form-group">
+        <label for="password" data-role="form-label">Password</label>
         <input
           id="password"
           v-model="formData.password"
           type="password"
+          data-role="form-input"
+          data-input-type="password"
+          :data-validation-state="formErrors.password ? 'invalid' : 'valid'"
           placeholder="Create a secure password"
           class="form-input"
           :class="{ error: formErrors.password }"
           autocomplete="new-password"
         />
-        <span v-if="formErrors.password" class="error-message">{{ formErrors.password }}</span>
+        <span v-if="formErrors.password" data-role="form-error" class="error-message">{{ formErrors.password }}</span>
       </div>
 
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
+      <div data-role="form-group" class="form-group">
+        <label for="confirmPassword" data-role="form-label">Confirm Password</label>
         <input
           id="confirmPassword"
           v-model="formData.confirmPassword"
           type="password"
+          data-role="form-input"
+          data-input-type="confirm-password"
+          :data-validation-state="formErrors.confirmPassword ? 'invalid' : 'valid'"
           placeholder="Confirm your password"
           class="form-input"
           :class="{ error: formErrors.confirmPassword }"
           autocomplete="new-password"
         />
-        <span v-if="formErrors.confirmPassword" class="error-message">{{ formErrors.confirmPassword }}</span>
+        <span v-if="formErrors.confirmPassword" data-role="form-error" class="error-message">{{ formErrors.confirmPassword }}</span>
       </div>
 
       <!-- Invite Code Section -->
-      <div class="form-group invite-section">
+      <div data-role="form-group" data-group-type="invite-section" class="form-group invite-section">
         <label class="checkbox-label">
-          <input type="checkbox" v-model="hasInviteCode" class="checkbox" />
+          <input type="checkbox" data-role="form-input" data-input-type="invite-toggle" v-model="hasInviteCode" class="checkbox" />
           <span>I have an invite code</span>
         </label>
 
         <div v-if="hasInviteCode" class="invite-input-group">
-          <label for="inviteCode">Invite Code (Optional)</label>
+          <label for="inviteCode" data-role="form-label">Invite Code (Optional)</label>
           <input
             id="inviteCode"
             :value="inviteCode"
             @input="handleInviteCodeInput"
             type="text"
+            data-role="form-input"
+            data-input-type="invite-code"
+            :data-validation-state="inviteCodeError ? 'invalid' : 'valid'"
             maxlength="8"
             placeholder="ABCD1234"
             class="form-input code-input"
             :class="{ error: inviteCodeError }"
           />
-          <span v-if="inviteCodeError" class="error-message">{{ inviteCodeError }}</span>
+          <span v-if="inviteCodeError" data-role="form-error" class="error-message">{{ inviteCodeError }}</span>
           <p class="help-text">Enter the 8-character code shared by your family admin</p>
         </div>
       </div>
 
-      <div v-if="authStore.error" class="auth-error">
+      <div v-if="authStore.error" data-role="alert" data-alert-type="error" class="auth-error">
         {{ authStore.error }}
       </div>
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
+        data-role="button"
+        data-action="submit"
+        :data-loading="authStore.isLoading"
         :disabled="!isValid || authStore.isLoading"
         class="submit-btn"
       >
@@ -216,10 +234,10 @@ const switchToLogin = () => {
       </button>
     </form>
 
-    <div class="form-footer">
+    <div data-role="form-footer" class="form-footer">
       <p>
-        Already have an account? 
-        <button type="button" @click="switchToLogin" class="link-btn">
+        Already have an account?
+        <button type="button" data-role="button" data-action="switch-to-login" @click="switchToLogin" class="link-btn">
           Sign in
         </button>
       </p>
