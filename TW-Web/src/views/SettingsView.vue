@@ -25,23 +25,23 @@ const handleJoinSuccess = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background text-text">
-    <div class="mx-auto max-w-5xl space-y-12 px-6 py-16 md:px-8 md:py-20">
-      <header class="space-y-4">
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
+  <div data-role="page-container" class="min-h-screen bg-background text-text">
+    <div data-role="content-wrapper" class="mx-auto max-w-5xl space-y-12 px-6 py-16 md:px-8 md:py-20">
+      <header data-role="section" data-section-type="hero" class="space-y-4">
+        <p data-role="eyebrow-label" class="text-xs font-semibold uppercase tracking-[0.35em] text-text-tertiary">
           Settings
         </p>
         <div class="space-y-3">
-          <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">
+          <h1 data-role="page-title" class="text-4xl font-semibold tracking-tight md:text-5xl">
             Manage your family workspace
           </h1>
-          <p class="max-w-2xl text-base text-text-secondary md:text-lg">
+          <p data-role="page-description" class="max-w-2xl text-base text-text-secondary md:text-lg">
             Update family details, curate members, and share invite codes with the people you trust.
           </p>
         </div>
       </header>
 
-      <section class="space-y-6">
+      <section data-role="section" data-section-type="settings-components" class="space-y-6">
         <FamilyInfoCard />
 
         <MemberManagement />
@@ -50,16 +50,18 @@ const handleJoinSuccess = async () => {
 
         <div
           v-else
+          data-role="card"
+          data-card-type="member-notification"
           class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20"
         >
           <div class="flex items-start gap-3">
-            <div class="rounded-full bg-primary-soft p-2 text-primary">
+            <div data-role="icon-container" class="rounded-full bg-primary-soft p-2 text-primary">
               <Info :size="16" :stroke-width="1.8" />
             </div>
             <div class="space-y-2 text-sm text-text-secondary">
               <h2 class="text-base font-semibold text-text">Member account</h2>
               <p>
-                You’re a member of this family. Reach out to an admin if you’d like to invite someone or adjust family details.
+                You're a member of this family. Reach out to an admin if you'd like to invite someone or adjust family details.
               </p>
             </div>
           </div>
@@ -68,11 +70,13 @@ const handleJoinSuccess = async () => {
             <div class="space-y-1 text-sm text-text-secondary">
               <p class="text-text font-semibold">Have an invite code?</p>
               <p class="text-xs">
-                Use it to join another family workspace. You’ll keep all of your wishlist items.
+                Use it to join another family workspace. You'll keep all of your wishlist items.
               </p>
             </div>
             <button
               type="button"
+              data-role="button"
+              data-action="join-family"
               class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition duration-200 ease-soft-snap hover:bg-primary-hover"
               @click="showJoinModal = true"
             >
@@ -83,11 +87,13 @@ const handleJoinSuccess = async () => {
         </div>
       </section>
 
-      <div v-if="successMessage" class="flex items-center gap-3 rounded-xl border border-success bg-success-soft/40 px-4 py-3 text-sm font-semibold text-success">
-        <CheckCircle :size="18" :stroke-width="1.8" />
-        <span class="flex-1">{{ successMessage }}</span>
+      <div v-if="successMessage" data-role="alert" data-alert-type="success" class="flex items-center gap-3 rounded-xl border border-success bg-success-soft/40 px-4 py-3 text-sm font-semibold text-success">
+        <CheckCircle data-role="alert-icon" :size="18" :stroke-width="1.8" />
+        <span data-role="alert-message" class="flex-1">{{ successMessage }}</span>
         <button
           type="button"
+          data-role="alert-dismiss"
+          data-action="close"
           class="rounded-md border border-success/40 bg-background px-2 py-1 text-xs text-success transition duration-150 ease-soft-snap hover:bg-success/10"
           @click="successMessage = null"
         >
@@ -97,12 +103,16 @@ const handleJoinSuccess = async () => {
 
       <div
         v-if="familyStore.error"
+        data-role="alert"
+        data-alert-type="error"
         class="flex items-center gap-3 rounded-xl border border-danger bg-danger-soft/40 px-4 py-3 text-sm font-semibold text-danger"
       >
-        <AlertTriangle :size="18" :stroke-width="1.8" />
-        <span class="flex-1">{{ familyStore.error }}</span>
+        <AlertTriangle data-role="alert-icon" :size="18" :stroke-width="1.8" />
+        <span data-role="alert-message" class="flex-1">{{ familyStore.error }}</span>
         <button
           type="button"
+          data-role="alert-dismiss"
+          data-action="close"
           class="rounded-md border border-danger/40 bg-background px-2 py-1 text-xs text-danger transition duration-150 ease-soft-snap hover:bg-danger/10"
           @click="familyStore.clearError()"
         >

@@ -35,17 +35,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="auth-view">
-    <div class="auth-container">
-      <div class="auth-header">
+  <div data-role="page-container" class="auth-view">
+    <div data-role="content-wrapper" class="auth-container">
+      <div data-role="auth-header" class="auth-header">
         <h1 class="logo">
-          <Gift :size="32" :stroke-width="2" class="logo-icon" />
+          <Gift data-role="logo-icon" :size="32" :stroke-width="2" class="logo-icon" />
           TW-Web
         </h1>
-        <p class="tagline">Share wishlists, give perfect gifts</p>
+        <p data-role="tagline" class="tagline">Share wishlists, give perfect gifts</p>
       </div>
-      
-      <div class="auth-content">
+
+      <div data-role="auth-content" class="auth-content">
         <Transition name="slide" mode="out-in">
           <LoginForm
             v-if="currentView === 'login'"

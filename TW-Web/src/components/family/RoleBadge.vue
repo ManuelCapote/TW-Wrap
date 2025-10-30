@@ -47,13 +47,20 @@ const badgeClasses = computed(
 </script>
 
 <template>
-  <span :class="badgeClasses">
+  <span
+    data-role="badge"
+    data-badge-type="role"
+    :data-role-type="role.toLowerCase()"
+    :data-badge-size="size"
+    :class="badgeClasses"
+  >
     <component
       :is="badgeConfig[role].icon"
       :size="iconSize"
       :stroke-width="1.8"
+      data-role="badge-icon"
       class="text-current"
     />
-    <span>{{ badgeConfig[role].label }}</span>
+    <span data-role="badge-label">{{ badgeConfig[role].label }}</span>
   </span>
 </template>
