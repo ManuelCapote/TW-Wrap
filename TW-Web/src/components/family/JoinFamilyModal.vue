@@ -82,7 +82,7 @@ watch(
 
 <template>
   <TransitionRoot :show="isOpen" as="template">
-    <Dialog as="div" class="relative z-50" @close="handleClose">
+    <Dialog data-role="modal" data-modal-type="join-family" as="div" class="relative z-50" @close="handleClose">
       <TransitionChild
         as="template"
         enter="ease-out duration-200"
@@ -92,7 +92,7 @@ watch(
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        <div data-role="modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 overflow-y-auto">
@@ -106,13 +106,16 @@ watch(
             leave-from="opacity-100 translate-y-0 scale-100"
             leave-to="opacity-0 translate-y-2 scale-95"
           >
-            <DialogPanel class="w-full max-w-lg rounded-2xl border border-border bg-surface px-6 py-6 text-text shadow-xl shadow-black/40">
-              <div class="flex items-center justify-between">
+            <DialogPanel data-role="modal-panel" class="w-full max-w-lg rounded-2xl border border-border bg-surface px-6 py-6 text-text shadow-xl shadow-black/40">
+              <div data-role="modal-header" class="flex items-center justify-between">
                 <DialogTitle class="text-lg font-semibold text-text">
                   Join another family
                 </DialogTitle>
                 <button
                   type="button"
+                  data-role="button"
+                  data-action="close"
+                  :data-loading="isJoining"
                   class="rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="isJoining"
                   @click="handleClose"
@@ -121,8 +124,8 @@ watch(
                 </button>
               </div>
 
-              <div class="mt-6 space-y-5">
-                <div class="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">
+              <div data-role="modal-body" class="mt-6 space-y-5">
+                <div data-role="alert" data-alert-type="warning" class="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">
                   <AlertTriangle :size="18" :stroke-width="1.8" class="mt-[2px]" />
                   <p>
                     You will leave
@@ -131,8 +134,8 @@ watch(
                   </p>
                 </div>
 
-                <div class="space-y-2 text-xs font-semibold text-text-secondary">
-                  <label for="inviteCode">
+                <div data-role="form-container" data-form-type="join-family" class="space-y-2 text-xs font-semibold text-text-secondary">
+                  <label for="inviteCode" data-role="form-label">
                     Invite code
                     <span class="text-danger">*</span>
                   </label>
@@ -140,6 +143,9 @@ watch(
                     id="inviteCode"
                     :value="inviteCode"
                     type="text"
+                    data-role="form-input"
+                    data-input-type="invite-code"
+                    :data-validation-state="inviteCode && !isValidFormat ? 'invalid' : (isValidFormat ? 'valid' : 'pristine')"
                     placeholder="8-character code"
                     class="w-full rounded-md border border-border bg-background px-3 py-3 font-mono text-base tracking-[0.4em] text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
                     :class="{
@@ -156,12 +162,14 @@ watch(
                   </p>
                 </div>
 
-                <div v-if="error" class="flex items-start gap-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-xs font-semibold text-danger">
+                <div v-if="error" data-role="alert" data-alert-type="error" class="flex items-start gap-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-xs font-semibold text-danger">
                   <AlertTriangle :size="14" :stroke-width="1.8" class="mt-[2px]" />
                   {{ error }}
                 </div>
                 <div
                   v-else-if="inviteCode && !isValidFormat"
+                  data-role="alert"
+                  data-alert-type="info"
                   class="flex items-start gap-2 rounded-md border border-primary bg-primary-soft/40 px-3 py-2 text-xs font-semibold text-primary"
                 >
                   <Info :size="14" :stroke-width="1.8" class="mt-[2px]" />
@@ -169,23 +177,31 @@ watch(
                 </div>
               </div>
 
-              <div class="mt-6 flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="isJoining"
-                  @click="handleClose"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
-                  :disabled="!canSubmit"
-                  @click="handleJoin"
-                >
-                  {{ isJoining ? 'Joining…' : 'Join with code' }}
-                </button>
+              <div data-role="modal-footer" class="mt-6 flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+                <div data-role="form-actions">
+                  <button
+                    type="button"
+                    data-role="button"
+                    data-action="cancel"
+                    :data-loading="isJoining"
+                    class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="isJoining"
+                    @click="handleClose"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    data-role="button"
+                    data-action="submit"
+                    :data-loading="isJoining"
+                    class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-border disabled:text-text-secondary"
+                    :disabled="!canSubmit"
+                    @click="handleJoin"
+                  >
+                    {{ isJoining ? 'Joining…' : 'Join with code' }}
+                  </button>
+                </div>
               </div>
             </DialogPanel>
           </TransitionChild>
