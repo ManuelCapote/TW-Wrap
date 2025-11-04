@@ -6,15 +6,17 @@ import FamilyInfoCard from '@/components/family/FamilyInfoCard.vue'
 import MemberManagement from '@/components/family/MemberManagement.vue'
 import InviteCodeManager from '@/components/family/InviteCodeManager.vue'
 import JoinFamilyModal from '@/components/family/JoinFamilyModal.vue'
+import LeaveFamilyModal from '@/components/family/LeaveFamilyModal.vue'
 import EditProfileForm from '@/components/profile/EditProfileForm.vue'
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm.vue'
 import DeleteAccountModal from '@/components/profile/DeleteAccountModal.vue'
-import { Info, Ticket, X, CheckCircle, AlertTriangle, User, Lock, Trash2, Edit } from 'lucide-vue-next'
+import { Info, Ticket, X, CheckCircle, AlertTriangle, User, Lock, Trash2, Edit, LogOut } from 'lucide-vue-next'
 import { generateAvatarDataUri } from '@/utils/avatar'
 
 const familyStore = useFamilyStore()
 const authStore = useAuthStore()
 const showJoinModal = ref(false)
+const showLeaveModal = ref(false)
 const showEditProfile = ref(false)
 const showChangePassword = ref(false)
 const showDeleteAccount = ref(false)
@@ -45,6 +47,18 @@ const handleProfileSuccess = () => {
 
 const handlePasswordSuccess = () => {
   successMessage.value = 'Password changed successfully!'
+  setTimeout(() => {
+    successMessage.value = null
+  }, 5000)
+}
+
+const handleLeaveSuccess = async () => {
+  showLeaveModal.value = false
+  successMessage.value = 'You have left the family and created your own workspace'
+
+  await familyStore.fetchFamilyMembers()
+  await familyStore.fetchFamily()
+
   setTimeout(() => {
     successMessage.value = null
   }, 5000)
@@ -193,6 +207,26 @@ const handlePasswordSuccess = () => {
               Join another family
             </button>
           </div>
+
+          <!-- Leave Family Option -->
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/40 bg-background px-4 py-4">
+            <div class="space-y-1 text-sm text-text-secondary">
+              <p class="text-danger font-semibold">Leave this family</p>
+              <p class="text-xs">
+                You'll keep your wishlist items but won't see other members' lists anymore.
+              </p>
+            </div>
+            <button
+              type="button"
+              data-role="button"
+              data-action="leave-family"
+              class="inline-flex items-center gap-2 rounded-md border border-danger bg-background px-4 py-2 text-sm font-semibold text-danger transition duration-200 ease-soft-snap hover:bg-danger hover:text-white"
+              @click="showLeaveModal = true"
+            >
+              <LogOut :size="18" :stroke-width="1.8" />
+              Leave family
+            </button>
+          </div>
         </div>
         </div>
       </section>
@@ -237,6 +271,13 @@ const handlePasswordSuccess = () => {
       :current-family-name="familyStore.familyName"
       @close="showJoinModal = false"
       @success="handleJoinSuccess"
+    />
+
+    <LeaveFamilyModal
+      :is-open="showLeaveModal"
+      :current-family-name="familyStore.familyName"
+      @close="showLeaveModal = false"
+      @success="handleLeaveSuccess"
     />
 
     <EditProfileForm
