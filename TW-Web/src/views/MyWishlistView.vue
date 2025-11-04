@@ -3,6 +3,7 @@ import { computed, ref, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { WishListItem } from '@/types'
 import { useWishlistStore } from '@/stores/wishlist'
+import { useToast } from '@/composables/useToast'
 import AddItemForm from '@/components/AddItemForm.vue'
 import EditItemForm from '@/components/EditItemForm.vue'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
@@ -21,6 +22,7 @@ import {
 } from 'lucide-vue-next'
 
 const wishlistStore = useWishlistStore()
+const { success, error } = useToast()
 
 const showAddForm = ref(false)
 const editingItemId = ref<string | null>(null)
@@ -89,8 +91,10 @@ const addItem = async (itemData: Omit<WishListItem, 'id' | 'userId' | 'createdAt
       priority: itemData.priority
     })
     showAddForm.value = false
-  } catch (error) {
-    console.error('Failed to add item:', error)
+    success('Item added to your wishlist!')
+  } catch (err) {
+    error('Failed to add item')
+    console.error('Failed to add item:', err)
   }
 }
 
@@ -100,8 +104,10 @@ const removeItem = async (id: string) => {
     if (editingItemId.value === id) {
       editingItemId.value = null
     }
-  } catch (error) {
-    console.error('Failed to remove item:', error)
+    success('Item removed from wishlist')
+  } catch (err) {
+    error('Failed to remove item')
+    console.error('Failed to remove item:', err)
   }
 }
 
@@ -124,8 +130,10 @@ const saveItemEdit = async (updatedItem: WishListItem) => {
       priority: updatedItem.priority
     })
     editingItemId.value = null
-  } catch (error) {
-    console.error('Failed to save item:', error)
+    success('Item updated successfully')
+  } catch (err) {
+    error('Failed to update item')
+    console.error('Failed to save item:', err)
   }
 }
 

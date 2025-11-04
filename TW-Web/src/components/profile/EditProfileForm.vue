@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { userApi } from '@/services/userApi'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import { generateAvatarDataUri } from '@/utils/avatar'
 
 interface Emits {
@@ -11,6 +12,7 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 const authStore = useAuthStore()
+const { success, error: showError } = useToast()
 
 // Form state
 const name = ref(authStore.user?.name || '')
@@ -64,10 +66,12 @@ const handleSubmit = async () => {
       authStore.user.avatar = updatedUser.avatar
     }
 
+    success('Profile updated successfully!')
     emit('success')
     emit('close')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to update profile'
+    showError('Failed to update profile')
   } finally {
     isLoading.value = false
   }

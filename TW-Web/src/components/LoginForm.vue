@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import type { LoginCredentials } from '@/types'
 
 interface Emits {
@@ -11,6 +12,7 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 const authStore = useAuthStore()
+const { success } = useToast()
 
 const formData = ref<LoginCredentials>({
   email: '',
@@ -45,10 +47,11 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   if (!validateForm() || authStore.isLoading) return
-  
+
   try {
     authStore.clearError()
     await authStore.login(formData.value)
+    success('Welcome back!')
     emit('login-success')
   } catch (error) {
     // Error is handled by the store

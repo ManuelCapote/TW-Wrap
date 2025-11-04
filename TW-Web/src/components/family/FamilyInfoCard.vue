@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { useToast } from '@/composables/useToast'
 import { Users, Pencil, Check, X, Calendar, Crown } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
+const { success, error } = useToast()
 
 const isEditing = ref(false)
 const editedName = ref('')
@@ -24,7 +26,7 @@ const cancelEdit = () => {
 
 const saveEdit = async () => {
   if (!editedName.value.trim()) {
-    alert('Family name cannot be empty')
+    error('Family name cannot be empty')
     return
   }
 
@@ -32,8 +34,9 @@ const saveEdit = async () => {
     isSaving.value = true
     await familyStore.updateFamilyName(editedName.value.trim())
     isEditing.value = false
-  } catch (error) {
-    alert('Failed to update family name: ' + (error as Error).message)
+    success('Family name updated successfully')
+  } catch (err) {
+    error('Failed to update family name')
   } finally {
     isSaving.value = false
   }

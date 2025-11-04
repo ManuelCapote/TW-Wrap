@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { userApi } from '@/services/userApi'
+import { useToast } from '@/composables/useToast'
 
 interface Emits {
   (e: 'close'): void
@@ -8,6 +9,7 @@ interface Emits {
 }
 
 const emit = defineEmits<Emits>()
+const { success, error: showError } = useToast()
 
 // Form state
 const currentPassword = ref('')
@@ -87,6 +89,7 @@ const handleSubmit = async () => {
     await userApi.changePassword(currentPassword.value, newPassword.value)
 
     successMessage.value = 'Password changed successfully!'
+    success('Password changed successfully!')
 
     // Clear form
     currentPassword.value = ''
@@ -100,6 +103,7 @@ const handleSubmit = async () => {
     }, 1500)
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to change password'
+    showError('Failed to change password')
   } finally {
     isLoading.value = false
   }

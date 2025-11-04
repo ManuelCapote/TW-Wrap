@@ -152,3 +152,198 @@
     cursor: not-allowed;
   }
 }
+
+@layer utilities {
+  /* Toast Notification Styles */
+  :root {
+    --toast-success: #10b981;
+    --toast-error: #ef4444;
+    --toast-info: #3b82f6;
+    --toast-warning: #f59e0b;
+
+    --toast-success-soft: rgba(16, 185, 129, 0.14);
+    --toast-error-soft: rgba(239, 68, 68, 0.14);
+    --toast-info-soft: rgba(59, 130, 246, 0.14);
+    --toast-warning-soft: rgba(245, 158, 11, 0.16);
+
+    --toast-success-border: rgba(16, 185, 129, 0.35);
+    --toast-error-border: rgba(239, 68, 68, 0.42);
+    --toast-info-border: rgba(59, 130, 246, 0.45);
+    --toast-warning-border: rgba(245, 158, 11, 0.4);
+  }
+
+  [data-sonner-toast] {
+    --toast-accent: var(--color-primary);
+    --toast-accent-soft: var(--color-primary-soft);
+    --toast-border: rgba(59, 130, 246, 0.4);
+    --toast-icon-bg: var(--color-primary-soft);
+
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem 1rem 1.5rem !important;
+    background: var(--color-surface) !important;
+    border: 1px solid var(--toast-border) !important;
+    border-radius: 1rem !important;
+    color: var(--color-text) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    box-shadow: 0 18px 32px -16px rgba(15, 23, 42, 0.4), 0 10px 18px -10px rgba(15, 23, 42, 0.2) !important;
+    backdrop-filter: blur(16px) saturate(160%);
+  }
+
+  [data-sonner-toast]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--toast-accent-soft);
+    opacity: 0.7;
+    z-index: 0;
+  }
+
+  [data-sonner-toast]::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--toast-accent);
+    z-index: 1;
+  }
+
+  [data-sonner-toast] > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-sonner-toast] [data-content] {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  [data-sonner-toast] [data-title] {
+    color: var(--color-text) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+  }
+
+  [data-sonner-toast] [data-description] {
+    color: var(--color-text-secondary) !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.4 !important;
+  }
+
+  [data-sonner-toast] [data-icon] {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    background: var(--toast-icon-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--toast-accent) !important;
+    box-shadow: inset 0 0 0 1px var(--toast-border);
+  }
+
+  [data-sonner-toast] [data-actions] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  [data-sonner-toast] [data-button] {
+    background: var(--toast-accent) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    padding: 0.5rem 1.1rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8125rem !important;
+    cursor: pointer !important;
+    box-shadow: 0 10px 20px -10px rgba(37, 99, 235, 0.6);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  }
+
+  [data-sonner-toast] [data-button]:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+    box-shadow: 0 14px 24px -14px rgba(37, 99, 235, 0.8);
+  }
+
+  [data-sonner-toast] [data-cancel-button] {
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    border: 1px solid var(--toast-border) !important;
+    border-radius: 9999px !important;
+    padding: 0.45rem 1.05rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8125rem !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+  }
+
+  [data-sonner-toast] [data-cancel-button]:hover {
+    color: var(--color-text) !important;
+    border-color: var(--color-border-hover) !important;
+    background: var(--color-background) !important;
+  }
+
+  [data-sonner-toast] [data-close-button] {
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    border: 1px solid transparent !important;
+    border-radius: 0.5rem !important;
+    transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease !important;
+  }
+
+  [data-sonner-toast] [data-close-button]:hover {
+    color: var(--color-text) !important;
+    border-color: var(--toast-border) !important;
+    background: var(--color-surface-muted) !important;
+  }
+
+  [data-sonner-toast][data-type='success'] {
+    --toast-accent: var(--toast-success);
+    --toast-accent-soft: var(--toast-success-soft);
+    --toast-border: var(--toast-success-border);
+    --toast-icon-bg: var(--toast-success-soft);
+    box-shadow: 0 18px 32px -16px rgba(5, 150, 105, 0.35), 0 10px 18px -10px rgba(5, 150, 105, 0.2) !important;
+  }
+
+  [data-sonner-toast][data-type='error'] {
+    --toast-accent: var(--toast-error);
+    --toast-accent-soft: var(--toast-error-soft);
+    --toast-border: var(--toast-error-border);
+    --toast-icon-bg: var(--toast-error-soft);
+    box-shadow: 0 18px 32px -16px rgba(185, 28, 28, 0.35), 0 10px 18px -10px rgba(185, 28, 28, 0.2) !important;
+  }
+
+  [data-sonner-toast][data-type='info'],
+  [data-sonner-toast][data-type='loading'] {
+    --toast-accent: var(--toast-info);
+    --toast-accent-soft: var(--toast-info-soft);
+    --toast-border: var(--toast-info-border);
+    --toast-icon-bg: var(--toast-info-soft);
+    box-shadow: 0 18px 32px -16px rgba(37, 99, 235, 0.35), 0 10px 18px -10px rgba(37, 99, 235, 0.2) !important;
+  }
+
+  [data-sonner-toast][data-type='warning'] {
+    --toast-accent: var(--toast-warning);
+    --toast-accent-soft: var(--toast-warning-soft);
+    --toast-border: var(--toast-warning-border);
+    --toast-icon-bg: var(--toast-warning-soft);
+    box-shadow: 0 18px 32px -16px rgba(217, 119, 6, 0.35), 0 10px 18px -10px rgba(217, 119, 6, 0.2) !important;
+  }
+
+  [data-sonner-toast][data-type='default'],
+  [data-sonner-toast]:not([data-type]) {
+    --toast-accent: var(--color-primary);
+    --toast-accent-soft: var(--color-primary-soft);
+    --toast-border: rgba(59, 130, 246, 0.4);
+    --toast-icon-bg: var(--color-primary-soft);
+  }
+}

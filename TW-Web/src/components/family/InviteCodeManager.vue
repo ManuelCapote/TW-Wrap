@@ -8,9 +8,11 @@ import {
   TransitionRoot
 } from '@headlessui/vue'
 import { useFamilyStore } from '@/stores/family'
+import { useToast } from '@/composables/useToast'
 import { Check, Clipboard, Sparkles } from 'lucide-vue-next'
 
 const familyStore = useFamilyStore()
+const { success, error, confirm } = useToast()
 
 const expiresInDays = ref(7)
 const maxUses = ref(10)
@@ -32,34 +34,35 @@ const handleCreateInvite = async () => {
     })
     newlyCreatedCode.value = invite.code
     showNewCodeModal.value = true
-  } catch (error) {
-    alert('Failed to create invite code: ' + (error as Error).message)
+    success('Invite code created successfully!')
+  } catch (err) {
+    error('Failed to create invite code')
   } finally {
     isCreating.value = false
   }
 }
 
 const handleRevokeInvite = async (code: string) => {
-  if (!confirm(`Are you sure you want to revoke invite code ${code}?`)) {
-    return
-  }
-
-  try {
-    await familyStore.revokeInvite(code)
-  } catch (error) {
-    alert('Failed to revoke invite: ' + (error as Error).message)
-  }
+  confirm(`Are you sure you want to revoke invite code ${code}?`, async () => {
+    try {
+      await familyStore.revokeInvite(code)
+      success('Invite code revoked')
+    } catch (err) {
+      error('Failed to revoke invite')
+    }
+  })
 }
 
 const copyToClipboard = async (code: string) => {
   try {
     await navigator.clipboard.writeText(code)
     copiedCode.value = code
+    success('Code copied to clipboard!')
     setTimeout(() => {
       copiedCode.value = ''
     }, 2000)
-  } catch (error) {
-    alert('Failed to copy code')
+  } catch (err) {
+    error('Failed to copy code')
   }
 }
 

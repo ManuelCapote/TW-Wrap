@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
   PopoverContent
 } from 'radix-vue'
+import { CheckCircle, AlertTriangle, Info, Loader2, X } from 'lucide-vue-next'
 
 const notificationsEnabled = ref(true)
 const remindersEnabled = ref(false)
@@ -56,6 +57,56 @@ const quickActions = [
     description: 'Align on allocations and approvals',
     eta: '30 mins',
     priority: 'Low'
+  }
+]
+
+type ToastType = 'success' | 'error' | 'info' | 'warning' | 'loading'
+
+interface ToastSample {
+  title: string
+  description?: string
+  type: ToastType
+  icon: typeof CheckCircle
+  iconClass?: string
+  actionLabel?: string
+  cancelLabel?: string
+  dismissible?: boolean
+}
+
+const toastSamples: ToastSample[] = [
+  {
+    title: 'Wishlists synced',
+    description: 'All family wishlists are up to date.',
+    type: 'success',
+    icon: CheckCircle,
+    actionLabel: 'View activity',
+    dismissible: true
+  },
+  {
+    title: 'Invite code expired',
+    description: 'Send a new invite so your family can join.',
+    type: 'error',
+    icon: AlertTriangle,
+    actionLabel: 'Create new code',
+    cancelLabel: 'Dismiss',
+    dismissible: true
+  },
+  {
+    title: 'Mom joined the workspace',
+    description: 'Her wishlist is now visible to admins.',
+    type: 'info',
+    icon: Info,
+    actionLabel: 'View family',
+    dismissible: true
+  },
+  {
+    title: 'Syncing purchases…',
+    description: 'Pulling the latest receipts from shared logins.',
+    type: 'loading',
+    icon: Loader2,
+    iconClass: 'animate-spin',
+    cancelLabel: 'Cancel sync',
+    dismissible: false
   }
 ]
 </script>
@@ -220,6 +271,94 @@ const quickActions = [
                     Button styling echoes Linear’s weightlessness—crisp radius, subtle blur
                     shadows, and eased hover states.
                   </p>
+                </div>
+
+                <div class="space-y-4 rounded-xl border border-border bg-surface-muted/60 p-5 md:col-span-2">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-semibold text-text">Notification variants</p>
+                      <p class="text-xs text-text-secondary">
+                        Static Sonner toasts showing each state with our updated theme.
+                      </p>
+                    </div>
+                    <span class="rounded-full border border-border bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-text-tertiary">
+                      Reference
+                    </span>
+                  </div>
+                  <div class="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface-muted/70 via-surface to-surface px-5 py-6 shadow-inner shadow-black/20">
+                    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_55%)]"></div>
+                    <ol
+                      data-sonner-toaster=""
+                      dir="ltr"
+                      data-sonner-theme="dark"
+                      data-x-position="right"
+                      data-y-position="top"
+                      class="relative grid gap-4 sm:grid-cols-2 justify-items-start list-none p-0 m-0"
+                    >
+                      <li
+                        v-for="sample in toastSamples"
+                        :key="sample.title"
+                        class="list-none w-full"
+                      >
+                        <div
+                          tabindex="0"
+                          data-sonner-toast=""
+                          :data-type="sample.type"
+                          data-styled="true"
+                          data-visible="true"
+                          data-mounted="true"
+                          :data-dismissible="sample.dismissible !== false"
+                          data-state="open"
+                          data-y-position="top"
+                          data-x-position="right"
+                          class="tw-toast w-full max-w-[22rem]"
+                        >
+                          <button
+                            v-if="sample.dismissible !== false && sample.type !== 'loading'"
+                            type="button"
+                            aria-label="Close toast preview"
+                            data-close-button="true"
+                            data-close-button-position="top-right"
+                          >
+                            <X :size="14" :stroke-width="1.8" />
+                          </button>
+                          <div data-icon>
+                            <component
+                              :is="sample.icon"
+                              :size="18"
+                              :stroke-width="1.8"
+                              :class="sample.iconClass"
+                            />
+                          </div>
+                          <div data-content>
+                            <p data-title>{{ sample.title }}</p>
+                            <p
+                              v-if="sample.description"
+                              data-description
+                            >
+                              {{ sample.description }}
+                            </p>
+                          </div>
+                          <button
+                            v-if="sample.cancelLabel"
+                            type="button"
+                            data-button
+                            data-cancel
+                          >
+                            {{ sample.cancelLabel }}
+                          </button>
+                          <button
+                            v-if="sample.actionLabel"
+                            type="button"
+                            data-button
+                            data-action
+                          >
+                            {{ sample.actionLabel }}
+                          </button>
+                        </div>
+                      </li>
+                    </ol>
+                  </div>
                 </div>
               </div>
             </TabsContent>

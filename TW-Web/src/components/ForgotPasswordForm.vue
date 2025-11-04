@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 interface Emits {
   (e: 'back-to-login'): void
 }
 
 const emit = defineEmits<Emits>()
+const toast = useToast()
 
 const email = ref('')
 const isLoading = ref(false)
@@ -56,9 +58,11 @@ const handleSubmit = async () => {
     }
 
     successMessage.value = data.message || 'Check your email for a password reset link'
+    toast.success('Password reset email sent!')
     email.value = '' // Clear the form
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred. Please try again.'
+    toast.error('Failed to send password reset email')
   } finally {
     isLoading.value = false
   }

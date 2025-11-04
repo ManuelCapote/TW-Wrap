@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useFamilyStore } from '@/stores/family'
+import { useToast } from '@/composables/useToast'
 import type { RegisterCredentials } from '@/types'
 
 interface Emits {
@@ -12,6 +13,7 @@ interface Emits {
 const emit = defineEmits<Emits>()
 const authStore = useAuthStore()
 const familyStore = useFamilyStore()
+const { success } = useToast()
 
 const formData = ref<RegisterCredentials>({
   name: '',
@@ -99,11 +101,15 @@ const handleSubmit = async () => {
         await familyStore.joinWithCode({
           inviteCode: inviteCode.value.trim()
         })
+        success('Account created and joined family!')
       } catch (error) {
         console.error('Failed to join family with invite code:', error)
+        success('Account created successfully!')
         // Don't block registration success - user is still registered
         // They can join manually later via settings
       }
+    } else {
+      success('Account created successfully!')
     }
 
     emit('register-success')

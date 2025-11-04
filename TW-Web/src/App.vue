@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { generateAvatarDataUri } from '@/utils/avatar'
+import { Toaster } from 'vue-sonner'
 import {
   LayoutDashboard,
   Gift,
@@ -52,6 +53,21 @@ const handleLogout = async () => {
 
 <template>
   <div class="flex min-h-screen flex-col bg-background text-text">
+    <!-- Toast Notifications -->
+    <Toaster
+      position="top-right"
+      :duration="4000"
+      :toastOptions="{
+        className: 'tw-toast',
+        style: {
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }
+      }"
+      closeButton
+    />
+
     <header
       v-if="authStore.isAuthenticated"
       class="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur"

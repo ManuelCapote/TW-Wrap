@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useFamilyStore } from '@/stores/family'
+import { useToast } from '@/composables/useToast'
 import RoleBadge from './RoleBadge.vue'
 import { Mail, Clock, Info } from 'lucide-vue-next'
 import { generateAvatarDataUri } from '@/utils/avatar'
 
 const familyStore = useFamilyStore()
+const { success, error, confirm } = useToast()
 
 const members = computed(() => familyStore.members)
 const isAdmin = computed(() => familyStore.isAdmin)
@@ -25,19 +27,17 @@ const canRemoveMember = (memberId: string, memberRole: string) => {
 }
 
 const handleRemoveMember = async (userId: string, memberName: string) => {
-  if (
-    !confirm(
-      `Remove ${memberName} from the family?\n\nThey will no longer have access to family wishlists.`
-    )
-  ) {
-    return
-  }
-
-  try {
-    await familyStore.removeMember(userId)
-  } catch (error) {
-    alert('Failed to remove member: ' + (error as Error).message)
-  }
+  confirm(
+    `Remove ${memberName} from the family? They will no longer have access to family wishlists.`,
+    async () => {
+      try {
+        await familyStore.removeMember(userId)
+        success(`${memberName} has been removed from the family`)
+      } catch (err) {
+        error('Failed to remove member')
+      }
+    }
+  )
 }
 
 const formatDate = (date: Date) => {
