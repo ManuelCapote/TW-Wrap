@@ -38,12 +38,9 @@ router.get('/family', authenticateToken, asyncHandler(async (req, res) => {
   const result = await Promise.all(Object.keys(itemsByUser).map(async userId => {
     const user = await database.getUserById(userId)
     return {
-      user: user ? {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar
-      } : null,
+      userId: user?.id || userId,
+      userName: user?.name || 'Unknown',
+      userEmail: user?.email || '',
       items: itemsByUser[userId]
     }
   }))
@@ -101,8 +98,8 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
   }
 
   // Validate required fields
-  if (!itemData.title || !itemData.url) {
-    throw createError('Title and URL are required', 400)
+  if (!itemData.title) {
+    throw createError('Title is required', 400)
   }
 
   const item = await database.createWishlistItem(itemData)

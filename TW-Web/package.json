@@ -1,11 +1,12 @@
 {
-  "name": "tw-web",
-  "version": "0.0.0",
+  "name": "turtle-wrap",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "run-p type-check \"build-only {@}\" --",
     "build-only": "vite build",
+    "build:prod": "vite build",
     "dev": "vite",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",

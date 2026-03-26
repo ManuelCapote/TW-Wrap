@@ -230,7 +230,7 @@ Error responses:
 
 ## Integration with Frontend
 
-This backend is designed to work with the [TW-Web frontend application](../TW-Web/README.md).
+This backend is designed to work with the [Turtle Wrap frontend application](../Turtle Wrap/README.md).
 
 ### Running Full Stack
 See the [root README](../README.md) for instructions on running both frontend and backend together.

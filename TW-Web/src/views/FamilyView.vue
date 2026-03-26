@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
 import type { WishListItem } from '@/types'
 import { useFamilyStore } from '@/stores/family'
 import { useWishlistStore } from '@/stores/wishlist'
+import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue'
 import {
   Users,
@@ -16,7 +18,8 @@ import {
   Wallet,
   Clock,
   ChevronDown,
-  HeartHandshake
+  HeartHandshake,
+  Plus
 } from 'lucide-vue-next'
 import RoleBadge from '@/components/family/RoleBadge.vue'
 import { generateAvatarDataUri } from '@/utils/avatar'
@@ -24,6 +27,11 @@ import { generateAvatarDataUri } from '@/utils/avatar'
 const route = useRoute()
 const familyStore = useFamilyStore()
 const wishlistStore = useWishlistStore()
+const authStore = useAuthStore()
+const { success, error: showError } = useToast()
+
+// Filter state
+const itemFilter = ref<'all' | 'available' | 'purchased'>('all')
 
 // Use store data instead of mock data
 const familyMembers = computed(() => familyStore.members)
@@ -52,14 +60,23 @@ const mockWishlistItems = computed(() => {
 
 const memberSummaries = computed(() =>
   familyMembers.value.map(member => {
-    const items = mockWishlistItems.value[member.id] || []
-    const purchased = items.filter(item => item.isPurchased).length
+    const allItems = mockWishlistItems.value[member.id] || []
+
+    // Filter items based on selected filter
+    let items = allItems
+    if (itemFilter.value === 'available') {
+      items = allItems.filter(item => !item.isPurchased)
+    } else if (itemFilter.value === 'purchased') {
+      items = allItems.filter(item => item.isPurchased)
+    }
+
+    const purchased = allItems.filter(item => item.isPurchased).length
     return {
       member,
       items,
-      totalItems: items.length,
+      totalItems: allItems.length,
       purchased,
-      outstanding: items.length - purchased
+      outstanding: allItems.length - purchased
     }
   })
 )
@@ -116,8 +133,10 @@ const formatUpdatedAt = (item: WishListItem) => {
 const markAsPurchased = async (memberId: string, itemId: string) => {
   try {
     await wishlistStore.markAsPurchased(itemId, memberId)
+    success('Item marked as purchased!')
   } catch (error) {
     console.error('Failed to mark item as purchased:', error)
+    showError('Failed to mark item as purchased')
   }
 }
 </script>
@@ -194,20 +213,55 @@ const markAsPurchased = async (memberId: string, itemId: string) => {
       </section>
 
       <section data-role="section" data-section-type="members-wishlists" class="rounded-2xl border border-border bg-surface px-5 py-6 shadow-md shadow-black/20">
-        <div data-role="section-header" class="flex items-center justify-between gap-4">
+        <div data-role="section-header" class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div data-role="header-content">
             <p data-role="section-title" class="text-sm font-semibold text-text">Family members</p>
             <p data-role="section-description" class="mt-1 text-xs text-text-secondary">
               Click into any member to see their latest wishlist items.
             </p>
           </div>
+
+          <!-- Filter buttons -->
+          <div data-role="filter-group" class="flex items-center gap-1 rounded-full border border-border bg-surface-muted/60 p-1">
+            <button
+              type="button"
+              data-filter="all"
+              :data-active="itemFilter === 'all'"
+              class="rounded-full px-3 py-1.5 text-xs font-semibold transition duration-150 ease-soft-snap"
+              :class="itemFilter === 'all' ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'text-text-secondary hover:text-text'"
+              @click="itemFilter = 'all'"
+            >
+              All Items
+            </button>
+            <button
+              type="button"
+              data-filter="available"
+              :data-active="itemFilter === 'available'"
+              class="rounded-full px-3 py-1.5 text-xs font-semibold transition duration-150 ease-soft-snap"
+              :class="itemFilter === 'available' ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'text-text-secondary hover:text-text'"
+              @click="itemFilter = 'available'"
+            >
+              Available
+            </button>
+            <button
+              type="button"
+              data-filter="purchased"
+              :data-active="itemFilter === 'purchased'"
+              class="rounded-full px-3 py-1.5 text-xs font-semibold transition duration-150 ease-soft-snap"
+              :class="itemFilter === 'purchased' ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'text-text-secondary hover:text-text'"
+              @click="itemFilter = 'purchased'"
+            >
+              Purchased
+            </button>
+          </div>
         </div>
 
         <div data-role="list" data-list-type="member-disclosures" class="mt-6 space-y-4">
+          <!-- @ts-ignore HeadlessUI slot types -->
           <Disclosure
             v-for="summary in memberSummaries"
             :key="summary.member.id"
-            v-slot="{ open }"
+            v-slot="{ open }: { open: boolean }"
             :default-open="highlightedMemberId === summary.member.id"
             as="article"
             data-role="disclosure"
@@ -312,7 +366,9 @@ const markAsPurchased = async (memberId: string, itemId: string) => {
                     :data-item-id="item.id"
                     :data-priority="item.priority"
                     :data-purchased="item.isPurchased"
-                    class="flex flex-col gap-3 rounded-xl border border-border bg-background px-4 py-4 shadow-sm shadow-black/10"
+                    :data-purchased-by-me="item.isPurchased && item.purchasedBy === authStore.user?.id"
+                    class="flex flex-col gap-3 rounded-xl border px-4 py-4 shadow-sm shadow-black/10 transition duration-200"
+                    :class="item.isPurchased ? 'border-success/40 bg-success-soft/20 opacity-75' : 'border-border bg-background hover:border-primary/40'"
                   >
                     <div data-role="item-header" class="flex items-start justify-between gap-3">
                       <div data-role="item-content">
@@ -321,7 +377,17 @@ const markAsPurchased = async (memberId: string, itemId: string) => {
                             {{ item.title }}
                           </h3>
                           <span
-                            v-if="item.isPurchased"
+                            v-if="item.isPurchased && item.purchasedBy === authStore.user?.id"
+                            data-role="badge"
+                            data-badge-type="status"
+                            data-badge-variant="success-you"
+                            class="inline-flex items-center gap-1 rounded-full border border-success bg-success px-2 py-0.5 text-[11px] font-semibold text-white"
+                          >
+                            <Check :size="12" :stroke-width="1.8" />
+                            Purchased by You
+                          </span>
+                          <span
+                            v-else-if="item.isPurchased"
                             data-role="badge"
                             data-badge-type="status"
                             data-badge-variant="success"
@@ -403,10 +469,11 @@ const markAsPurchased = async (memberId: string, itemId: string) => {
                           type="button"
                           data-role="button"
                           data-action="mark-purchased"
-                          class="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary transition duration-150 ease-soft-snap hover:border-primary hover:text-primary"
+                          class="inline-flex items-center gap-2 rounded-md bg-success px-3 py-1.5 text-xs font-semibold text-white transition duration-150 ease-soft-snap hover:bg-success/90"
                           @click="markAsPurchased(summary.member.id, item.id)"
                         >
-                          Mark purchased
+                          <Check :size="14" :stroke-width="1.8" />
+                          Mark as Purchased
                         </button>
                       </div>
                     </div>
@@ -427,5 +494,16 @@ const markAsPurchased = async (memberId: string, itemId: string) => {
         </div>
       </section>
     </div>
+
+    <!-- Floating Quick Add Button - Links to My Wishlist -->
+    <RouterLink
+      to="/my-wishlist"
+      data-role="button"
+      data-action="quick-add"
+      class="fixed bottom-6 right-6 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition duration-200 ease-soft-snap hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:px-6 md:py-4"
+    >
+      <Plus :size="20" :stroke-width="2" />
+      <span class="hidden sm:inline">Add to My List</span>
+    </RouterLink>
   </div>
 </template>

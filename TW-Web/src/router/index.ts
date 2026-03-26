@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DashboardView from '../views/DashboardView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -11,7 +10,7 @@ const router = createRouter({
       component: () => import('../views/AuthView.vue'),
       meta: {
         requiresGuest: true,
-        title: 'Sign In - TW-Web'
+        title: 'Sign In - Turtle Wrap'
       }
     },
     {
@@ -20,34 +19,34 @@ const router = createRouter({
       component: () => import('../views/ResetPasswordView.vue'),
       meta: {
         requiresGuest: true,
-        title: 'Reset Password - TW-Web'
+        title: 'Reset Password - Turtle Wrap'
       }
     },
     {
       path: '/',
-      name: 'dashboard',
-      component: DashboardView,
-      meta: { 
+      name: 'family',
+      component: () => import('../views/FamilyView.vue'),
+      meta: {
         requiresAuth: true,
-        title: 'Dashboard - TW-Web'
+        title: 'Family Wishlists - Turtle Wrap'
       }
     },
     {
       path: '/my-wishlist',
       name: 'my-wishlist',
       component: () => import('../views/MyWishlistView.vue'),
-      meta: { 
+      meta: {
         requiresAuth: true,
-        title: 'My Wishlist - TW-Web'
+        title: 'My Wishlist - Turtle Wrap'
       }
     },
     {
-      path: '/family',
-      name: 'family',
-      component: () => import('../views/FamilyView.vue'),
+      path: '/manage-family',
+      name: 'manage-family',
+      component: () => import('../views/ManageFamilyView.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Family Wishlists - TW-Web'
+        title: 'Manage Family - Turtle Wrap'
       }
     },
     {
@@ -56,15 +55,7 @@ const router = createRouter({
       component: () => import('../views/SettingsView.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Settings - TW-Web'
-      }
-    },
-    {
-      path: '/design-spike',
-      name: 'design-spike',
-      component: () => import('../views/DesignSpike.vue'),
-      meta: {
-        title: 'Design Spike - TW-Web'
+        title: 'Settings - Turtle Wrap'
       }
     }
   ]
@@ -92,7 +83,7 @@ router.beforeEach(async (to, from, next) => {
     // Redirect to login if trying to access protected route while not authenticated
     next('/auth')
   } else if (requiresGuest && isAuthenticated) {
-    // Redirect to dashboard if trying to access auth pages while authenticated
+    // Redirect to home if trying to access auth pages while authenticated
     next('/')
   } else {
     next()

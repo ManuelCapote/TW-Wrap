@@ -8,9 +8,7 @@ import AddItemForm from '@/components/AddItemForm.vue'
 import EditItemForm from '@/components/EditItemForm.vue'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import {
-  Flame,
-  CircleDot,
-  Feather,
+  Star,
   Package,
   Store,
   Wallet,
@@ -18,7 +16,8 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Plus
 } from 'lucide-vue-next'
 
 const wishlistStore = useWishlistStore()
@@ -53,22 +52,25 @@ onMounted(async () => {
 
 const priorityStyles: Record<
   WishListItem['priority'],
-  { label: string; class: string; icon: Component }
+  { label: string; class: string; icon: Component; stars: number }
 > = {
   high: {
-    label: 'High',
+    label: 'Must Have',
     class: 'border border-danger-soft bg-danger-soft text-danger',
-    icon: Flame
+    icon: Star,
+    stars: 3
   },
   medium: {
-    label: 'Medium',
+    label: 'Would Like',
     class: 'border border-warning-soft bg-warning-soft text-warning',
-    icon: CircleDot
+    icon: Star,
+    stars: 2
   },
   low: {
-    label: 'Low',
+    label: 'Nice to Have',
     class: 'border border-success-soft bg-success-soft text-success',
-    icon: Feather
+    icon: Star,
+    stars: 1
   }
 }
 
@@ -255,10 +257,11 @@ const formatUpdatedAt = (item: WishListItem) => {
         </div>
 
         <div v-if="hasItems" data-role="list" data-list-type="item-disclosures" class="mt-6 space-y-4">
+          <!-- @ts-ignore HeadlessUI slot types -->
           <Disclosure
             v-for="item in wishlistItems"
             :key="item.id"
-            v-slot="{ open }"
+            v-slot="{ open }: { open: boolean }"
             as="article"
             data-role="disclosure"
             data-disclosure-type="item"
@@ -311,15 +314,19 @@ const formatUpdatedAt = (item: WishListItem) => {
                   data-role="badge"
                   data-badge-type="priority"
                   :data-priority="item.priority"
-                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
                   :class="priorityStyles[item.priority].class"
                 >
-                  <component
-                    :is="priorityStyles[item.priority].icon"
-                    :size="14"
-                    :stroke-width="1.8"
-                    data-role="badge-icon"
-                  />
+                  <span class="inline-flex items-center gap-0.5">
+                    <Star
+                      v-for="n in priorityStyles[item.priority].stars"
+                      :key="n"
+                      :size="12"
+                      :stroke-width="1.8"
+                      fill="currentColor"
+                      data-role="badge-icon"
+                    />
+                  </span>
                   <span data-role="badge-label">{{ priorityStyles[item.priority].label }}</span>
                 </span>
                 <span data-role="badge" data-badge-type="quantity" class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
@@ -421,6 +428,19 @@ const formatUpdatedAt = (item: WishListItem) => {
         </div>
       </section>
     </div>
+
+    <!-- Floating Quick Add Button -->
+    <button
+      v-if="!showAddForm && !editingItem"
+      type="button"
+      data-role="button"
+      data-action="quick-add"
+      class="fixed bottom-6 right-6 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition duration-200 ease-soft-snap hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:px-6 md:py-4"
+      @click="openAddForm"
+    >
+      <Plus :size="20" :stroke-width="2" />
+      <span class="hidden sm:inline">Add Item</span>
+    </button>
   </div>
 </template>
 

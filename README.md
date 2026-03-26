@@ -1,4 +1,4 @@
-# 🎁 TW Wrap - Family Wishlist Platform
+# 🐢 Turtle Wrap - Family Wishlist Platform
 
 A full-stack family wishlist management application that helps families share gift ideas, track purchases, and avoid duplicate gifts.
 
@@ -8,8 +8,9 @@ This is a monorepo containing both frontend and backend applications:
 
 ```
 TW Wrap/
-├── TW-Web/          # Vue 3 + TypeScript frontend
-└── TW-Backend/      # Node.js + Express backend API
+├── TW-Web/              # Vue 3 + TypeScript frontend
+├── TW-Backend/          # Node.js + Express backend API
+└── docker-compose.yml   # Full-stack Docker orchestration
 ```
 
 ### TW-Web (Frontend)
@@ -88,14 +89,16 @@ All accounts belong to the same family and can view each other's wishlists.
 - **Build Tool:** Vite
 - **Routing:** Vue Router
 - **State Management:** Pinia
-- **Styling:** Modern CSS with CSS Variables
+- **Styling:** Tailwind CSS
+- **UI Components:** Radix Vue, Headless UI
 
 ### Backend
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Language:** TypeScript
+- **Database:** PostgreSQL with Prisma ORM
 - **Authentication:** JWT
-- **Security:** Helmet, CORS, Rate Limiting
+- **Security:** Helmet, CORS
 - **Logging:** Morgan
 
 ## 📚 Documentation
@@ -156,13 +159,16 @@ You can use `concurrently` or `pm2` to run both applications simultaneously.
 ## 🛣 Roadmap
 
 ### Backend
-- [ ] Database integration (PostgreSQL/MongoDB)
+- [x] Database integration (PostgreSQL + Prisma)
+- [x] Family management with role-based permissions
 - [ ] Email verification system
 - [ ] Password reset functionality
 - [ ] Product URL metadata scraping
 - [ ] API documentation with Swagger/OpenAPI
 
 ### Frontend
+- [x] Dark/light/auto theme toggle
+- [x] Family management UI
 - [ ] Real-time updates via WebSockets
 - [ ] Enhanced URL parsing (price & image extraction)
 - [ ] Price tracking over time
@@ -171,7 +177,8 @@ You can use `concurrently` or `pm2` to run both applications simultaneously.
 - [ ] Internationalization (i18n)
 
 ### DevOps
-- [ ] Docker containerization
+- [x] Docker containerization
+- [x] Docker Compose orchestration
 - [ ] CI/CD pipeline
 - [ ] Automated testing
 - [ ] Production deployment guides

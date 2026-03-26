@@ -1,4 +1,4 @@
-# 🎁 TW-Web - Family Wishlist Application
+# 🎁 Turtle Wrap - Family Wishlist Application
 
 A modern, responsive web application for managing family wishlists. Share what you want, see what others need, and avoid duplicate gifts!
 
@@ -65,7 +65,7 @@ src/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd "TW Wrap/TW-Web"
+   cd "TW Wrap/Turtle Wrap"
    ```
 
 2. **Install dependencies**
@@ -97,7 +97,7 @@ To run the complete application with both frontend and backend:
 
 2. **Start the frontend server** (in another terminal)
    ```bash
-   cd "TW Wrap/TW-Web"
+   cd "TW Wrap/Turtle Wrap"
    npm run dev
    ```
 
