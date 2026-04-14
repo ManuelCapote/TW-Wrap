@@ -35,6 +35,8 @@ RESTful API backend built with Node.js, Express, and TypeScript.
 - Purchase tracking
 - Security with Helmet & CORS
 
+> ⚠️ **Security note:** `JWT_SECRET` in `.env.example` is a placeholder. Before deploying to any environment, generate a strong random secret (e.g. `openssl rand -base64 48`) and rotate it periodically. Never reuse the example value in production.
+
 [📖 View Backend Documentation →](TW-Backend/README.md)
 
 ## 🚀 Quick Start
